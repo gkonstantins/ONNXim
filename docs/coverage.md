@@ -2,7 +2,7 @@
 
 Reviewed November 19, 2026 against all five pages of the September 18 assignment. Source SHA-256 `1239ad1e634bafa119519932c749b488ec7b509301cbb0b2ef322b9a979b22b5`. The audit tests conformance to the stated constants and to declared interpretations. Actual command traces, silicon measurements and a numerical ISA would be needed to validate those interpretations against a physical device.
 
-[Measured comparison](architecture-comparison.md) · [Experiment manifest](../configs/arago_experiments.json) · [Target defaults](../configs/arago_dual_array.json) · [Kernel and SRAM map](../ARAGO.md#flashattention-on-the-control-cpu)
+[Complete workload case report](case-metrics.md) · [Four-device limits and host bandwidth](four-case-metrics.md) · [Interactivity recommendations](interactivity-recommendations.md) · [Measured comparison](architecture-comparison.md) · [Experiment manifest](../configs/arago_experiments.json) · [Target defaults](../configs/arago_dual_array.json) · [Kernel and SRAM map](../ARAGO.md#flashattention-on-the-control-cpu)
 
 ## Requirement and evidence
 
@@ -84,6 +84,10 @@ for b in 1 16; do
   done
 done
 python3 tools/arago/render_study.py
+python3 tools/arago/case_elasticity.py
+python3 tools/arago/four_case_metrics.py
+python3 tools/arago/recommendation_study.py
+python3 tools/arago/report_cases.py
 ```
 
 The timing runner generates 32 design cases per batch, the full 2×3×6 workload/schedule/precision grid and 60 placement/microbatch/host combinations. Tests use smaller cases for independent oracles, plus the full B16 compatibility fixture. Hardware and layer tests live in [test_hardware.cc](../tests/arago/test_hardware.cc) and [test_layer.cc](../tests/arago/test_layer.cc). The [architecture tests](../tests/arago/test_architecture.py) check each sweep direction, invariant payloads and capacity rejection. Full-rate results are estimates conditional on these scheduling decisions. The suite does not exhaust arbitrary future chip designs.

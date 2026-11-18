@@ -1,6 +1,6 @@
 # Arago inference exercise
 
-[Requirements coverage and open issues](docs/coverage.md) · [Architecture, accuracy and four-device comparison](docs/architecture-comparison.md)
+[Per-case TTFT, rate and bottleneck](docs/case-metrics.md) · [Interactivity recommendations](docs/interactivity-recommendations.md) · [Requirements coverage and open issues](docs/coverage.md) · [Architecture, accuracy and four-device comparison](docs/architecture-comparison.md)
 
 Start with one accelerator, one synchronous batch of 16 users, and materialized causal attention. Run streaming attention on the same requests as the first optimization. ONNXim supplies target cycles. PyTorch on the RTX 4060 supplies numerical results. The two programs currently execute independent implementations. The build commands, cold-tile test and existing measurements are in the [simulator guide](docs/arago.md).
 

@@ -60,3 +60,11 @@ if(ARAGO_TORCH_PYTHON)
   add_test(NAME arago-panel-replay COMMAND ${ARAGO_TORCH_PYTHON}
     ${PROJECT_SOURCE_DIR}/tools/arago/replay_panels.py --simulator $<TARGET_FILE:onnxim-arago>)
 endif()
+add_test(NAME arago-case-elasticity COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/tests/arago/test_case_elasticity.py $<TARGET_FILE:onnxim-arago>)
+add_test(NAME arago-four-case-metrics COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/tests/arago/test_four_case_metrics.py)
+add_test(NAME arago-interactivity-recommendations COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/tests/arago/test_recommendation_study.py)
+add_test(NAME arago-report-cases COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/tests/arago/test_report_cases.py)
