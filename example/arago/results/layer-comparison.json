@@ -1,0 +1,129 @@
+{
+  "scope": "one_decoder_layer",
+  "target": "arago-dual-array",
+  "clock_hz": 1000000000,
+  "model_preset": "models/language_models/llama3-8b.json",
+  "hardware_config": "configs/arago_dual_array.json",
+  "cases": {
+    "prefill": {
+      "phase": "prefill",
+      "batch": 16,
+      "queries": 2048,
+      "visible_context": 2048,
+      "trace": "example/arago/prefill.csv",
+      "priming_iterations_excluded": 0,
+      "naive": {
+        "attention": {
+          "cycles": 1606082560,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "array16_tiles": 2179072,
+          "array32_tiles": 3268608,
+          "peak_sram_bytes": 196608,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 535830528
+        },
+        "layer": {
+          "cycles": 21462325736,
+          "dram_read_bytes": 162059517952,
+          "dram_write_bytes": 9932111872,
+          "array16_tiles": 38494208,
+          "array32_tiles": 39636992,
+          "peak_sram_bytes": 327680,
+          "array16_compute_cycles": 9569304576,
+          "array32_compute_cycles": 9719250944,
+          "dma_busy_cycles": 4043253316
+        }
+      },
+      "streaming": {
+        "attention": {
+          "cycles": 1085243392,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "array16_tiles": 2179072,
+          "array32_tiles": 3268608,
+          "peak_sram_bytes": 459776,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 138395648
+        },
+        "layer": {
+          "cycles": 20941486568,
+          "dram_read_bytes": 157697441792,
+          "dram_write_bytes": 5570035712,
+          "array16_tiles": 38494208,
+          "array32_tiles": 39636992,
+          "peak_sram_bytes": 459776,
+          "array16_compute_cycles": 9569304576,
+          "array32_compute_cycles": 9719250944,
+          "dma_busy_cycles": 3645818436
+        }
+      },
+      "speedup_naive_over_streaming": {
+        "attention": 1.4799284398683534,
+        "layer": 1.0248711650106004
+      }
+    },
+    "decode": {
+      "phase": "decode",
+      "batch": 16,
+      "queries": 1,
+      "visible_context": 2176,
+      "trace": "example/arago/decode.csv",
+      "priming_iterations_excluded": 1,
+      "naive": {
+        "attention": {
+          "cycles": 19907840,
+          "dram_read_bytes": 147193856,
+          "dram_write_bytes": 4587520,
+          "array16_tiles": 34816,
+          "array32_tiles": 0,
+          "peak_sram_bytes": 67584,
+          "array16_compute_cycles": 4456448,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 7472384
+        },
+        "layer": {
+          "cycles": 52328936,
+          "dram_read_bytes": 421826560,
+          "dram_write_bytes": 7176192,
+          "array16_tiles": 88064,
+          "array32_tiles": 0,
+          "peak_sram_bytes": 98304,
+          "array16_compute_cycles": 18087936,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 17297568
+        }
+      },
+      "streaming": {
+        "attention": {
+          "cycles": 12691456,
+          "dram_read_bytes": 142737408,
+          "dram_write_bytes": 131072,
+          "array16_tiles": 34816,
+          "array32_tiles": 0,
+          "peak_sram_bytes": 226336,
+          "array16_compute_cycles": 4456448,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 4069120
+        },
+        "layer": {
+          "cycles": 45112552,
+          "dram_read_bytes": 417370112,
+          "dram_write_bytes": 2719744,
+          "array16_tiles": 88064,
+          "array32_tiles": 0,
+          "peak_sram_bytes": 226336,
+          "array16_compute_cycles": 18087936,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 13894304
+        }
+      },
+      "speedup_naive_over_streaming": {
+        "attention": 1.568601742778764,
+        "layer": 1.1599639940564657
+      }
+    }
+  }
+}

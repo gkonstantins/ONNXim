@@ -186,6 +186,7 @@ void LangScheduler::init_inputs_and_model() {
     if(it->second->running == false) {
       LangInput input;
       input.request_id = it->first;
+      input.cached_decode = it->second->gen_phase;
       if(it->second->gen_phase) {
         input.seq_length = 1;
         input.context_length = it->second->current_length;

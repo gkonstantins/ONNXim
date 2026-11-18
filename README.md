@@ -1,6 +1,8 @@
 # ONNXim: A Fast, Cycle-level Multi-core NPU Simulator
 [![Docker Image CI](https://github.com/PSAL-POSTECH/ONNXim/actions/workflows/docker-image.yml/badge.svg)](https://github.com/PSAL-POSTECH/ONNXim/actions/workflows/docker-image.yml)
 
+This fork adds a [trace-driven dual-array accelerator model](docs/arago.md) with shared DMA and two attention schedules.
+
 ONNXim is a fast cycle-level simulator that can model multi-core NPUs for DNN inference. Its features include the following:
 - Faster simulation speed in comparison to other _detailed_ NPU simulation frameworks (see the figure below).
 - Support for modeling multi-core NPUs.

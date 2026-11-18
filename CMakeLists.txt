@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.15.0)
 set(project_name "AiFrameworkSim")
 project(${project_name})
 
+option(ONNXIM_ARAGO_ONLY "Build the ONNXim language frontend and Arago tile target" OFF)
+if(ONNXIM_ARAGO_ONLY)
+  enable_testing()
+  add_subdirectory(cmake/arago)
+  return()
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include("${CMAKE_SOURCE_DIR}/build/conanbuildinfo.cmake")
 conan_basic_setup()

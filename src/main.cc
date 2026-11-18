@@ -2,16 +2,24 @@
 #include <chrono>
 #include <filesystem>
 
+#include "arago/Run.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <iostream>
+#ifndef ONNXIM_ARAGO_ONLY
 #include "Simulator.h"
+#endif
 #include "helper/CommandLineParser.h"
+#ifndef ONNXIM_ARAGO_ONLY
 #include "operations/OperationFactory.h"
+#endif
 
 namespace fs = std::filesystem;
 namespace po = boost::program_options;
 
 int main(int argc, char** argv) {
   auto start = std::chrono::high_resolution_clock::now();
-  // parse command line argumnet
+  // parse command line argument
   CommandLineParser cmd_parser = CommandLineParser();
   cmd_parser.add_command_line_option<std::string>(
       "config", "Path for hardware configuration file");
@@ -20,17 +28,22 @@ int main(int argc, char** argv) {
   cmd_parser.add_command_line_option<std::string>(
       "log_level", "Set for log level [trace, debug, info], default = info");
   cmd_parser.add_command_line_option<std::string>(
-      "mode", "choose default or language mode, default = default");
+      "mode", "choose default, language, or arago mode");
   cmd_parser.add_command_line_option<std::string>(
       "trace_file", "input trace file for language mode, default = input.csv");
 
+  cmd_parser.add_command_line_option<std::string>("model", "Arago language model preset path");
+  cmd_parser.add_command_line_option<std::string>("attention", "Arago attention: naive or streaming");
+  cmd_parser.add_command_line_option<unsigned>("batch", "Arago maximum synchronous batch size");
+
   try {
     cmd_parser.parse(argc, argv);
+    cmd_parser.print_help_message_if_required();
   } catch (const CommandLineParser::ParsingError& e) {
     spdlog::error(
-        "Command line argument parrsing error captured. Error message: {}",
+        "Command line argument parsing error captured. Error message: {}",
         e.what());
-    throw(e);
+    return EXIT_FAILURE;
   }
   char* onnxim_path_env = std::getenv("ONNXIM_HOME");
   std::string onnxim_path = onnxim_path_env != NULL?
@@ -49,6 +62,33 @@ int main(int argc, char** argv) {
   std::string config_path;
   cmd_parser.set_if_defined("config", &config_path);
 
+  std::string mode;
+  cmd_parser.set_if_defined("mode", &mode);
+  if (mode == "arago") {
+    // Keep the simulator's JSON-lines metrics on stdout and diagnostics on stderr.
+    spdlog::set_default_logger(spdlog::stderr_color_mt("arago"));
+    std::string target_level = "warning";
+    cmd_parser.set_if_defined("log_level", &target_level);
+    spdlog::set_level(spdlog::level::from_str(target_level));
+    std::string preset = (fs::path(model_base_path) / "language_models" / "llama3-8b.json").string();
+    std::string trace, attention = "streaming";
+    unsigned batch = 16;
+    cmd_parser.set_if_defined("model", &preset);
+    cmd_parser.set_if_defined("trace_file", &trace);
+    cmd_parser.set_if_defined("attention", &attention);
+    cmd_parser.set_if_defined("batch", &batch);
+    try {
+      arago::run_trace(preset, config_path, trace, attention, batch, std::cout);
+    } catch (const std::exception& error) {
+      std::cerr << "Arago simulation failed: " << error.what() << '\n';
+      return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+  }
+#ifdef ONNXIM_ARAGO_ONLY
+  std::cerr << "This focused build requires --mode arago.\n";
+  return EXIT_FAILURE;
+#else
   json config_json;
   std::ifstream config_file(config_path);
   if (!config_file) {
@@ -61,7 +101,7 @@ int main(int argc, char** argv) {
   SimulationConfig config = initialize_config(config_json);
   OperationFactory::initialize(config);
 
-  std::string mode = "default";
+  if (mode.empty()) mode = "default";
   bool language_mode = false;
   cmd_parser.set_if_defined("mode", &mode);
   if (mode == "default") {
@@ -128,4 +168,5 @@ int main(int argc, char** argv) {
   spdlog::info("Total tile: {}, simulated tile per seconds(TPS): {:3f}",
     simulator->get_number_tile(), simulator->get_tile_ops());
   return 0;
+#endif
 }
