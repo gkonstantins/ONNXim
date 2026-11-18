@@ -1,0 +1,166 @@
+{
+  "scope": "one_decoder_layer",
+  "target": "arago-dual-array",
+  "clock_hz": 1000000000,
+  "model_preset": "models/language_models/llama3-8b.json",
+  "hardware_config": "configs/arago_dual_array.json",
+  "trace": "example/arago/batch16.csv",
+  "batch": 16,
+  "prompt_tokens_per_user": 2048,
+  "output_positions_per_user": 256,
+  "intervals": {
+    "prefill": {
+      "iterations": 1,
+      "first_visible_context": 2048,
+      "last_visible_context": 2048,
+      "attention": {
+        "naive": {
+          "cycles": 1606082560,
+          "mean_cycles_per_iteration": 1606082560.0,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "dram_bytes": 13623099392,
+          "peak_sram_bytes": 196608
+        },
+        "flashattention": {
+          "cycles": 1085243392,
+          "mean_cycles_per_iteration": 1085243392.0,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "dram_bytes": 4898947072,
+          "peak_sram_bytes": 459776
+        },
+        "speedup": 1.4799284398683534,
+        "cycles_saved": 520839168,
+        "dram_bytes_saved": 8724152320,
+        "time_reduction_pct": 32.429165285251585,
+        "dram_reduction_pct": 64.03940886699507
+      },
+      "layer": {
+        "naive": {
+          "cycles": 21462325736,
+          "mean_cycles_per_iteration": 21462325736.0,
+          "dram_read_bytes": 162059517952,
+          "dram_write_bytes": 9932111872,
+          "dram_bytes": 171991629824,
+          "peak_sram_bytes": 327680
+        },
+        "flashattention": {
+          "cycles": 20941486568,
+          "mean_cycles_per_iteration": 20941486568.0,
+          "dram_read_bytes": 157697441792,
+          "dram_write_bytes": 5570035712,
+          "dram_bytes": 163267477504,
+          "peak_sram_bytes": 459776
+        },
+        "speedup": 1.0248711650106004,
+        "cycles_saved": 520839168,
+        "dram_bytes_saved": 8724152320,
+        "time_reduction_pct": 2.4267601489542505,
+        "dram_reduction_pct": 5.07242842510852
+      }
+    },
+    "cached_decode": {
+      "iterations": 255,
+      "first_visible_context": 2049,
+      "last_visible_context": 2303,
+      "attention": {
+        "naive": {
+          "cycles": 5149792000,
+          "mean_cycles_per_iteration": 20195262.74509804,
+          "dram_read_bytes": 37534433280,
+          "dram_write_bytes": 1169817600,
+          "dram_bytes": 38704250880,
+          "peak_sram_bytes": 67584
+        },
+        "flashattention": {
+          "cycles": 3272155520,
+          "mean_cycles_per_iteration": 12831982.43137255,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "dram_bytes": 36431462400,
+          "peak_sram_bytes": 226336
+        },
+        "speedup": 1.57382250584471,
+        "cycles_saved": 1877636480,
+        "dram_bytes_saved": 2272788480,
+        "time_reduction_pct": 36.46043335342476,
+        "dram_reduction_pct": 5.872193436960276
+      },
+      "layer": {
+        "naive": {
+          "cycles": 13417171480,
+          "mean_cycles_per_iteration": 52616358.74509804,
+          "dram_read_bytes": 107565772800,
+          "dram_write_bytes": 1829928960,
+          "dram_bytes": 109395701760,
+          "peak_sram_bytes": 98304
+        },
+        "flashattention": {
+          "cycles": 11539535000,
+          "mean_cycles_per_iteration": 45253078.431372546,
+          "dram_read_bytes": 106429378560,
+          "dram_write_bytes": 693534720,
+          "dram_bytes": 107122913280,
+          "peak_sram_bytes": 226336
+        },
+        "speedup": 1.1627133571673383,
+        "cycles_saved": 1877636480,
+        "dram_bytes_saved": 2272788480,
+        "time_reduction_pct": 13.994279515610692,
+        "dram_reduction_pct": 2.077584807661094
+      }
+    },
+    "total": {
+      "iterations": 256,
+      "first_visible_context": 2048,
+      "last_visible_context": 2303,
+      "attention": {
+        "naive": {
+          "cycles": 6755874560,
+          "mean_cycles_per_iteration": 26390135.0,
+          "dram_read_bytes": 46527021056,
+          "dram_write_bytes": 5800329216,
+          "dram_bytes": 52327350272,
+          "peak_sram_bytes": 196608
+        },
+        "flashattention": {
+          "cycles": 4357398912,
+          "mean_cycles_per_iteration": 17021089.5,
+          "dram_read_bytes": 41028550656,
+          "dram_write_bytes": 301858816,
+          "dram_bytes": 41330409472,
+          "peak_sram_bytes": 459776
+        },
+        "speedup": 1.5504374734649036,
+        "cycles_saved": 2398475648,
+        "dram_bytes_saved": 10996940800,
+        "time_reduction_pct": 35.50207492307258,
+        "dram_reduction_pct": 21.015665312379454
+      },
+      "layer": {
+        "naive": {
+          "cycles": 34879497216,
+          "mean_cycles_per_iteration": 136248036.0,
+          "dram_read_bytes": 269625290752,
+          "dram_write_bytes": 11762040832,
+          "dram_bytes": 281387331584,
+          "peak_sram_bytes": 327680
+        },
+        "flashattention": {
+          "cycles": 32481021568,
+          "mean_cycles_per_iteration": 126878990.5,
+          "dram_read_bytes": 264126820352,
+          "dram_write_bytes": 6263570432,
+          "dram_bytes": 270390390784,
+          "peak_sram_bytes": 459776
+        },
+        "speedup": 1.0738423710897984,
+        "cycles_saved": 2398475648,
+        "dram_bytes_saved": 10996940800,
+        "time_reduction_pct": 6.8764627917278744,
+        "dram_reduction_pct": 3.908115101733776
+      }
+    }
+  }
+}

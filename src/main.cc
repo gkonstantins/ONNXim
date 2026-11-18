@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
       "trace_file", "input trace file for language mode, default = input.csv");
 
   cmd_parser.add_command_line_option<std::string>("model", "Arago language model preset path");
-  cmd_parser.add_command_line_option<std::string>("attention", "Arago attention: naive or streaming");
+  cmd_parser.add_command_line_option<std::string>("attention", "Arago attention: naive or flashattention (also accepted as streaming)");
   cmd_parser.add_command_line_option<unsigned>("batch", "Arago maximum synchronous batch size");
 
   try {

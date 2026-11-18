@@ -29,8 +29,10 @@ The comparison runner executes both schedules on both traces and validates the b
 build/arago/cmake/arago/onnxim-arago --mode arago \
     --config configs/arago_dual_array.json \
     --model models/language_models/llama3-8b.json \
-    --trace_file example/arago/decode.csv --batch 16 --attention streaming
+    --trace_file example/arago/decode.csv --batch 16 --attention flashattention
 ```
+
+For prefill plus all 255 cached steps, see the [batch-16 benchmark and command](../ARAGO.md#measured-improvement-over-naive-attention). The explicit `flashattention` mode runs the online algorithm also selectable as `streaming`.
 
 The prefill trace admits 16 simultaneous prompts of 2,048 positions. The decode trace admits 16 requests with 2,174 prior positions, runs a one-position priming iteration and then runs one cached decode at **2,176 visible positions**, including the current token. The comparison reports only the latter iteration for decode. Both traces use the upstream 8B model preset in single-layer mode and homogeneous batches. Timings cover a decoder block from input hidden states to output hidden states. Embeddings, the final vocabulary projection, sampling, the remaining 31 blocks and host transfers fall outside the measured interval.
 

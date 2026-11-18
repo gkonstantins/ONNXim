@@ -24,7 +24,29 @@ build/arago/cmake/arago/onnxim-arago --mode arago \
   > /tmp/arago-b16-naive.jsonl
 ```
 
-Repeat with `--attention streaming` and a different output filename. Each run emits 256 JSON lines for one decoder layer across the workload. The first line has 2,048 queries **per user**. The next 255 lines have one query each and visible contexts from 2,049 through 2,303. The last prediction brings each sequence to 2,304 tokens. This represents 4,096 generated positions across the batch. Simulated traces carry shapes and counters; they do not emit token IDs. A decode step of duration T seconds gives 1/T tokens/s per user and 16/T tokens/s aggregate for an end-to-end model.
+Repeat with `--attention flashattention` and a different output filename. This selects the tiled online-softmax kernel; `streaming` remains its original CLI name. Each run emits 256 JSON lines for one decoder layer across the workload. The first line has 2,048 queries **per user**. The next 255 lines have one query each and visible contexts from 2,049 through 2,303. The last prediction brings each sequence to 2,304 tokens. This represents 4,096 generated positions across the batch. Simulated traces carry shapes and counters; they do not emit token IDs. A decode step of duration T seconds gives 1/T tokens/s per user and 16/T tokens/s aggregate for an end-to-end model.
+
+### Measured improvement over naive attention
+
+Both runs used the same hardware configuration and all 16 requests, from the 2,048-token prompt through each user's 256th output. Times are from the 1 GHz target clock for one decoder layer. The decode mean includes all 255 cached steps with their actual context lengths. Totals sum execution cycles across iterations.
+
+| Measured interval | Naive | FlashAttention | Speedup |
+|---|---:|---:|---:|
+| Prefill, attention only | 1.606 s | 1.085 s | 1.480× |
+| Prefill, complete layer | 21.462 s | 20.941 s | 1.025× |
+| Mean cached step, attention only | 20.195 ms | 12.832 ms | 1.574× |
+| Mean cached step, complete layer | 52.616 ms | 45.253 ms | 1.163× |
+| All 256 iterations, attention only | 6.756 s | 4.357 s | 1.550× |
+| **All 256 iterations, complete layer** | **34.879 s** | **32.481 s** | **1.074×** |
+
+The schedule saves **2.398 s (6.88%)** of complete-layer time across this batch. Both modes issue the same number of native attention matrix products. FlashAttention keeps logits and weights in SRAM and can prefetch K/V during compute. Across the run, attention DRAM reads plus writes fall from 48.734 to 38.492 GiB (21.0%). Peak prefill attention SRAM rises from 192 to 449 KiB. The projections and feed-forward network consume identical cycles in both runs, which limits the overall speedup.
+
+To reproduce the [full-trace comparison](example/arago/results/batch16-flashattention.json), run:
+
+```bash
+python3 tools/arago/run_comparison.py --workload batch16 \
+  --output /tmp/arago-batch16-flashattention.json
+```
 
 ### Supply token values for the numerical check
 

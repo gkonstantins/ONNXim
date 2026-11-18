@@ -83,8 +83,8 @@ void run_trace(const std::string& model_path, const std::string& hardware_path,
                unsigned batch_limit, std::ostream& result) {
   AttentionSchedule schedule;
   if (attention == "naive") schedule = AttentionSchedule::Naive;
-  else if (attention == "streaming") schedule = AttentionSchedule::Streaming;
-  else throw std::invalid_argument("attention must be naive or streaming");
+  else if (attention == "flashattention" || attention == "streaming") schedule = AttentionSchedule::Streaming;
+  else throw std::invalid_argument("attention must be naive, flashattention, or streaming");
   if (batch_limit == 0 || batch_limit > 65535) throw std::invalid_argument("batch limit must be 1..65535");
   const auto hardware_json = load_json(hardware_path);
   const auto hw = hardware_config(hardware_json);

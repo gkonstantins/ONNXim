@@ -47,3 +47,5 @@ endforeach()
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 add_test(NAME arago-language-integration COMMAND ${Python3_EXECUTABLE}
   ${PROJECT_SOURCE_DIR}/tools/arago/run_comparison.py --simulator $<TARGET_FILE:onnxim-arago>)
+add_test(NAME arago-batch16-flashattention COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/tools/arago/run_comparison.py --simulator $<TARGET_FILE:onnxim-arago> --workload batch16)

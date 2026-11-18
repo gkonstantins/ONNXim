@@ -27,13 +27,12 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def run_trace(simulator, case, schedule, sram_capacity):
+def run_trace(simulator, case, schedule, sram_capacity, expected):
     trace = f"example/arago/{case}.csv"
     command = [str(simulator), "--mode", "arago", "--model", MODEL, "--config", CONFIG,
                "--batch", "16", "--trace_file", trace, "--attention", schedule]
     process = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, check=True)
     rows = [json.loads(line) for line in process.stdout.splitlines() if line.strip()]
-    expected = CASES[case]
     tag = f"{case}/{schedule}"
     require(len(rows) == len(expected), f"{tag}: expected {len(expected)} iterations, got {len(rows)}")
     previous_end = 0
@@ -78,15 +77,56 @@ def compare(naive, streaming):
                 f"streaming attention did not remove expected intermediate {field}")
 
 
-def report(simulator):
+def run_pair(simulator, case, optimized, sram_capacity, expected):
+    naive = run_trace(simulator, case, "naive", sram_capacity, expected)
+    optimized_rows = run_trace(simulator, case, optimized, sram_capacity, expected)
+    for before, after in zip(naive, optimized_rows):
+        compare(before, after)
+    return naive, optimized_rows
+
+
+def interval_summary(naive, flash):
+    summary = {"iterations": len(naive), "first_visible_context": naive[0]["visible_context"],
+               "last_visible_context": naive[-1]["visible_context"]}
+    for component in ("attention", "layer"):
+        metrics = {}
+        for rows in (naive, flash):
+            cycles = sum(row[component]["cycles"] for row in rows)
+            reads = sum(row[component]["dram_read_bytes"] for row in rows)
+            writes = sum(row[component]["dram_write_bytes"] for row in rows)
+            metrics[rows[0]["schedule"]] = {
+                "cycles": cycles, "mean_cycles_per_iteration": cycles / len(rows),
+                "dram_read_bytes": reads, "dram_write_bytes": writes, "dram_bytes": reads + writes,
+                "peak_sram_bytes": max(row[component]["peak_sram_bytes"] for row in rows),
+            }
+        before, after = metrics["naive"], metrics["flashattention"]
+        metrics["speedup"] = before["cycles"] / after["cycles"]
+        metrics["cycles_saved"] = before["cycles"] - after["cycles"]
+        metrics["dram_bytes_saved"] = before["dram_bytes"] - after["dram_bytes"]
+        metrics["time_reduction_pct"] = 100 * metrics["cycles_saved"] / before["cycles"]
+        metrics["dram_reduction_pct"] = 100 * metrics["dram_bytes_saved"] / before["dram_bytes"]
+        summary[component] = metrics
+    return summary
+
+
+def report(simulator, workload="probes"):
     cfg = json.loads((ROOT / CONFIG).read_text(encoding="utf-8"))
     result = {"scope": "one_decoder_layer", "target": cfg["target"], "clock_hz": cfg["clock_hz"],
-              "model_preset": MODEL, "hardware_config": CONFIG, "cases": {}}
-    for case in CASES:
-        naive = run_trace(simulator, case, "naive", cfg["scratchpad_bytes"])
-        streamed = run_trace(simulator, case, "streaming", cfg["scratchpad_bytes"])
-        for n, s in zip(naive, streamed):
-            compare(n, s)
+              "model_preset": MODEL, "hardware_config": CONFIG}
+    if workload == "batch16":
+        expected = [("prefill", 16, 2048, 2048)] + [("decode", 16, 1, n) for n in range(2049, 2304)]
+        naive, flash = run_pair(simulator, workload, "flashattention", cfg["scratchpad_bytes"], expected)
+        result.update(trace="example/arago/batch16.csv", batch=16, prompt_tokens_per_user=2048,
+                      output_positions_per_user=256, intervals={
+                          "prefill": interval_summary(naive[:1], flash[:1]),
+                          "cached_decode": interval_summary(naive[1:], flash[1:]),
+                          "total": interval_summary(naive, flash),
+                      })
+        return result
+
+    result["cases"] = {}
+    for case, expected in CASES.items():
+        naive, streamed = run_pair(simulator, case, "streaming", cfg["scratchpad_bytes"], expected)
         n, s = naive[-1], streamed[-1]
         summary = {k: n[k] for k in ("phase", "batch", "queries", "visible_context")}
         summary["trace"] = f"example/arago/{case}.csv"
@@ -105,12 +145,14 @@ def report(simulator):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--workload", choices=("probes", "batch16"), default="probes",
+                        help="compare isolated probes or the full batch of 16 sequences")
     parser.add_argument("--simulator", type=Path, default=DEFAULT_SIMULATOR,
                         help="path to the built ONNXim --mode arago executable")
     parser.add_argument("--output", type=Path, help="write comparison JSON here (default: stdout)")
     args = parser.parse_args()
     try:
-        serialized = json.dumps(report(args.simulator.resolve()), indent=2, allow_nan=False) + "\n"
+        serialized = json.dumps(report(args.simulator.resolve(), args.workload), indent=2, allow_nan=False) + "\n"
         if args.output:
             args.output.write_text(serialized, encoding="utf-8")
         else:
