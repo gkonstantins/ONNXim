@@ -177,9 +177,40 @@ def run_group(q, k, v, positions, errors):
     return reference, naive, online_native
 
 
+def checkpoint_inputs(directory, prompts_file, batch, context):
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(str(directory), local_files_only=True)
+    bos = tokenizer.bos_token_id
+    if bos is None:
+        raise ValueError("checkpoint tokenizer must define a beginning-of-sequence token")
+    body_length = context - 1
+    if prompts_file is None:
+        text = (directory / "README.md").read_text(encoding="utf-8")
+        tokens = tokenizer.encode(text, add_special_tokens=False)
+        if not tokens:
+            raise ValueError("checkpoint README.md tokenizes to an empty sequence")
+        return [[bos] + [tokens[(user * 137 + i) % len(tokens)] for i in range(body_length)]
+                for user in range(batch)]
+
+    prompts = json.loads(prompts_file.read_text(encoding="utf-8"))
+    if not isinstance(prompts, list) or len(prompts) != batch:
+        raise ValueError(f"--prompts-file must contain a JSON array of exactly {batch} strings")
+    rows = []
+    for row, text in enumerate(prompts, start=1):
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError(f"--prompts-file row {row} must be a nonempty string")
+        tokens = tokenizer.encode(text, add_special_tokens=False)
+        if len(tokens) < body_length:
+            raise ValueError(f"--prompts-file row {row} contains {len(tokens)} body tokens; "
+                             f"--context {context} needs {body_length} plus one BOS token")
+        rows.append([bos] + tokens[:body_length])
+    return rows
+
+
 class CheckpointLayer:
     def __init__(self, directory, device, longest):
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoModelForCausalLM
         from transformers.models.llama.modeling_llama import apply_rotary_pos_emb
 
         model = AutoModelForCausalLM.from_pretrained(
@@ -197,19 +228,11 @@ class CheckpointLayer:
         del model
         gc.collect()
         torch.cuda.empty_cache()
-        tokenizer = AutoTokenizer.from_pretrained(str(directory), local_files_only=True)
-        text = (directory / "README.md").read_text(encoding="utf-8")
-        self.tokens = tokenizer.encode(text, add_special_tokens=False)
-        if not self.tokens:
-            raise ValueError("checkpoint README.md tokenizes to an empty sequence")
-        self.begin = tokenizer.bos_token_id
         self.positions = torch.arange(longest, device=device).unsqueeze(0)
 
-    def qkv(self, user, length):
-        # Different fixed windows of real text; decode uses a known held-out
-        # token from the same window. Only layer-zero Q/K/V values are needed.
-        offset = user * 137
-        ids = [self.begin] + [self.tokens[(offset + i) % len(self.tokens)] for i in range(length - 1)]
+    def qkv(self, ids):
+        # The final known token is the input for the teacher-forced decode step.
+        length = len(ids)
         h = self.embed(torch.tensor([ids], device=self.device))
         x = self.layer.input_layernorm(h)
         a = self.layer.self_attn
@@ -245,7 +268,10 @@ def check_limits(records):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--checkpoint", type=Path, help="local checkpoint with Llama-3.1-8B geometry and README.md")
+    p.add_argument("--checkpoint", type=Path, help="local checkpoint with Llama-3.1-8B geometry")
+    p.add_argument("--prompts-file", type=Path,
+                   help="UTF-8 JSON array of --batch texts for checkpoint mode; each needs at least "
+                        "--context minus one body tokens. Default: deterministic windows of the model card.")
     p.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
     p.add_argument("--batch", type=int, default=16)
     p.add_argument("--prompt", type=int, default=2048)
@@ -256,6 +282,13 @@ def main():
         p.error("require batch > 0 and context >= prompt > 0")
     if args.checkpoint and args.device != "cuda":
         p.error("checkpoint mode requires CUDA for the installed quantized weights")
+    if args.prompts_file and not args.checkpoint:
+        p.error("--prompts-file requires --checkpoint")
+    if args.checkpoint:
+        try:
+            rows = checkpoint_inputs(args.checkpoint, args.prompts_file, args.batch, args.context)
+        except (OSError, ValueError) as error:
+            p.error(str(error))
     torch.manual_seed(42)
     torch.set_float32_matmul_precision("highest")
     torch.backends.cuda.matmul.allow_tf32 = False
@@ -267,7 +300,7 @@ def main():
         layer = CheckpointLayer(args.checkpoint, device, args.context) if args.checkpoint else None
         for user in range(args.batch):
             if layer:
-                q, k, v, residual = layer.qkv(user, args.context)
+                q, k, v, residual = layer.qkv(rows[user])
             else:
                 q = torch.randn(QUERY_HEADS, args.context, WIDTH, device=device).bfloat16()
                 k = torch.randn(KV_HEADS, args.context, WIDTH, device=device).bfloat16()
@@ -306,6 +339,8 @@ def main():
               "relative_rms_limits": {"float_vs_float": 3e-5, "native_vs_reference": 0.10,
                                       "native_online_vs_native_materialized": 0.02},
               "errors": results, "result": "PASS"}
+    if args.prompts_file:
+        report["input_kind"] = "user-supplied text rows (teacher-forced)"
     if device.type == "cuda":
         report["peak_torch_allocated_mib_including_checkpoint_load"] = torch.cuda.max_memory_allocated() / 2**20
     encoded = json.dumps(report, indent=2, allow_nan=False)

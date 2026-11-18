@@ -4,6 +4,8 @@ This target models one Llama 3.1 8B decoder block on a device with a 16×16 arra
 
 The port starts from ONNXim revision `8599bee46b311fb267ac34b0677ad7db3d8a8ccd`. It uses ONNXim's actual request trace parser, FIFO admission, language-model batch generation, cache progression and retirement. For each admitted batch, the Arago path lowers the decoder block to target operations and advances the scheduler by the resulting cycles. The focused build bypasses the stock square-array mapper, private per-core scratchpads and BookSim/Ramulator transport. [Target entry point](../src/arago/Run.cc) · [Decoder block](../src/arago/DecoderLayer.cc) · [Hardware model](../src/arago/Hardware.cc)
 
+For the baseline assumptions, full 16-user trace, custom prompt inputs, and open issues, see the [exercise decisions](../ARAGO.md).
+
 ## Build and reproduce
 
 From the fork's root, use a C++20 compiler, CMake, Ninja, Python 3 and the development libraries for ONNX, Protobuf, Boost.Program_options and nlohmann JSON 3.11 or later. Suitable Debian/Ubuntu package names include `libonnx-dev`, `libprotobuf-dev`, `libboost-program-options-dev` and `nlohmann-json3-dev`. CMake fetches pinned spdlog and robin-hood hashing source archives. With dependencies installed in a private prefix, supply `-DCMAKE_PREFIX_PATH=/path/to/prefix/usr` at configure time and make the matching shared libraries available at runtime.
