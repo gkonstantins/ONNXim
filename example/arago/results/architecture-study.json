@@ -1,0 +1,5282 @@
+{
+  "clock_hz": 1000000000,
+  "config_sha256": "1d24eddb5db4efcbb923e44a7524fa0d8a1b1fa34a625ac60e8c1e5b24fae3ab",
+  "manifest_sha256": "d7cd4687be42c72744f80bd3249b1e7e3d87ba32c0e3e1a2fdfdfedf4c706e66",
+  "single": {
+    "1": {
+      "baseline": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "naive": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 100380160,
+            "dram_read_bytes": 562036736,
+            "dram_write_bytes": 289406976,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 33489408,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.16974828492004795,
+              "array32_compute_cycles": 0.2546224273800719,
+              "dma_busy_cycles": 0.3336257682793094
+            }
+          },
+          "decode": {
+            "cycles": 321862000,
+            "dram_read_bytes": 2345902080,
+            "dram_write_bytes": 73113600,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 121431504,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.22104976667018786,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.37727816269084263
+            }
+          }
+        },
+        "ttft_device_s": 43.270133773,
+        "decode_ms": 1123.212036490196,
+        "tokens_s_user": 0.890303849596192,
+        "decode_speedup": 0.9868888863820687,
+        "prefill_attention_cycles": 100380160,
+        "decode_attention_mean_cycles": 1262203.9215686275,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 10817634304,
+        "prefill_attention_speedup": 0.6757083471474842,
+        "decode_attention_speedup": 0.6353956664657524
+      },
+      "exact4": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 267876352,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 68157440,
+            "array32_compute_cycles": 102236160,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25443619599538225,
+              "array32_compute_cycles": 0.3816542939930733,
+              "dma_busy_cycles": 0.03229000221714233
+            }
+          },
+          "decode": {
+            "cycles": 778602904,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 284590080,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.36551376643722355,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.08433618685809577
+            }
+          }
+        },
+        "ttft_device_s": 151.602880909,
+        "decode_ms": 3854.612766090196,
+        "tokens_s_user": 0.2594294318737283,
+        "decode_speedup": 0.2875737572433513,
+        "prefill_attention_cycles": 267876352,
+        "decode_attention_mean_cycles": 3053344.7215686273,
+        "peak_layer_sram_B": 590848,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 0.25320529973470746,
+        "decode_attention_speedup": 0.26266241616792124
+      },
+      "bounded": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "saturate": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "queued_delivery": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 47477760,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 7580928,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.3588914051547504,
+              "array32_compute_cycles": 0.5383371077321255,
+              "dma_busy_cycles": 0.15967324490456164
+            }
+          },
+          "decode": {
+            "cycles": 149736120,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 57709200,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.47515268860980236,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3854060062461883
+            }
+          }
+        },
+        "ttft_device_s": 34.433599173,
+        "decode_ms": 895.4389260588235,
+        "tokens_s_user": 1.1167707488453629,
+        "decode_speedup": 1.2379241549634463,
+        "prefill_attention_cycles": 47477760,
+        "decode_attention_mean_cycles": 587200.4705882353,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.4286207268413673,
+        "decode_attention_speedup": 1.3658008501889858
+      },
+      "duplex_dma": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "transpose_decode": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.219862285,
+        "decode_ms": 985.7286118627451,
+        "tokens_s_user": 1.014478009429275,
+        "decode_speedup": 1.1245341390345003,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "overlap_drain": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 92862464,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.1834902851597821,
+              "array32_compute_cycles": 0.27523542773967313,
+              "dma_busy_cycles": 0.09314557925148315
+            }
+          },
+          "decode": {
+            "cycles": 236034584,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.30142837034423736,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.27819821522425714
+            }
+          }
+        },
+        "ttft_device_s": 52.115320845,
+        "decode_ms": 1215.0442892274511,
+        "tokens_s_user": 0.8230152669050603,
+        "decode_speedup": 0.91230046977756,
+        "prefill_attention_cycles": 92862464,
+        "decode_attention_mean_cycles": 925625.8196078432,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 0.7304104271883202,
+        "decode_attention_speedup": 0.8664396400486803
+      },
+      "double_buffer": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 74647552,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.22826414990809077,
+              "array32_compute_cycles": 0.3423962248621361,
+              "dma_busy_cycles": 0.11587423523279103
+            }
+          },
+          "decode": {
+            "cycles": 264857880,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.26862527178726947,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.24792315033254816
+            }
+          }
+        },
+        "ttft_device_s": 42.446690317,
+        "decode_ms": 1116.0585782941178,
+        "tokens_s_user": 0.8960103165270126,
+        "decode_speedup": 0.9932144220933743,
+        "prefill_attention_cycles": 74647552,
+        "decode_attention_mean_cycles": 1038658.3529411765,
+        "peak_layer_sram_B": 361472,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 0.908639468846882,
+        "decode_attention_speedup": 0.7721488973633709
+      },
+      "wavefront_fill": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 77224960,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 21125120,
+            "array32_compute_cycles": 34956288,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2735530066962806,
+              "array32_compute_cycles": 0.45265530729960884,
+              "dma_busy_cycles": 0.11200689518000398
+            }
+          },
+          "decode": {
+            "cycles": 221428760,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 88066560,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3977196096839453,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.2965486506811491
+            }
+          }
+        },
+        "ttft_device_s": 45.903400461,
+        "decode_ms": 1165.574409509804,
+        "tokens_s_user": 0.8579460837859006,
+        "decode_speedup": 0.9510207729499927,
+        "prefill_attention_cycles": 77224960,
+        "decode_attention_mean_cycles": 868348.0784313725,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 0.8783133328913346,
+        "decode_attention_speedup": 0.9235914973285314
+      },
+      "query_tile": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 91265024,
+            "dram_read_bytes": 557842432,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 33816576,
+            "array32_compute_cycles": 16908288,
+            "dma_busy_cycles": 16709632,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.3705316069384916,
+              "array32_compute_cycles": 0.1852658034692458,
+              "dma_busy_cycles": 0.18308910979960955
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.978449421,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 91265024,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 328192,
+        "prefill_layer_dram_B": 10540810240,
+        "prefill_attention_speedup": 0.7431950272647713,
+        "decode_attention_speedup": 1.0
+      },
+      "key_tile": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 87449600,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 11926528,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.19484777517564403,
+              "array32_compute_cycles": 0.29227166276346606,
+              "dma_busy_cycles": 0.13638173302107728
+            }
+          },
+          "decode": {
+            "cycles": 272427848,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 93402000,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.26116096618727463,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.34285041226769153
+            }
+          }
+        },
+        "ttft_device_s": 42.856355853,
+        "decode_ms": 1117.008535062745,
+        "tokens_s_user": 0.8952483070720919,
+        "decode_speedup": 0.9923697456801247,
+        "prefill_attention_cycles": 87449600,
+        "decode_attention_mean_cycles": 1068344.5019607844,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 0.7756206088992974,
+        "decode_attention_speedup": 0.7506931523388166
+      },
+      "double_output_port": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67270656,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25329558254939566,
+              "array32_compute_cycles": 0.37994337382409354,
+              "dma_busy_cycles": 0.12858099674247267
+            }
+          },
+          "decode": {
+            "cycles": 202225176,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.35182325666513453,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.324709323037009
+            }
+          }
+        },
+        "ttft_device_s": 42.060170253,
+        "decode_ms": 1100.8700199882353,
+        "tokens_s_user": 0.9083724525541051,
+        "decode_speedup": 1.006917670330046,
+        "prefill_attention_cycles": 67270656,
+        "decode_attention_mean_cycles": 793039.905882353,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0082808171218072,
+        "decode_attention_speedup": 1.011297030593263
+      },
+      "double_both_dma_links": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67309568,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 6257664,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2531491510983996,
+              "array32_compute_cycles": 0.37972372664759935,
+              "dma_busy_cycles": 0.09296841720927403
+            }
+          },
+          "decode": {
+            "cycles": 203432600,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 47875600,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3497350965381163,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.23533887882276489
+            }
+          }
+        },
+        "ttft_device_s": 40.315743525,
+        "decode_ms": 1048.724955862745,
+        "tokens_s_user": 0.9535388610804433,
+        "decode_speedup": 1.056983978178375,
+        "prefill_attention_cycles": 67309568,
+        "decode_attention_mean_cycles": 797774.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.007697924907199,
+        "decode_attention_speedup": 1.0052947266072398
+      },
+      "sweep_dma_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_sram_dma_rate": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_array16_input_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_array32_input_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_array_output_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67705856,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2516674480860267,
+              "array32_compute_cycles": 0.37750117212904005,
+              "dma_busy_cycles": 0.1277545032441507
+            }
+          },
+          "decode": {
+            "cycles": 204009976,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.34874529861226,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3218685737211204
+            }
+          }
+        },
+        "ttft_device_s": 42.191643053,
+        "decode_ms": 1106.8195948901962,
+        "tokens_s_user": 0.9034896062706648,
+        "decode_speedup": 1.0015051061439821,
+        "prefill_attention_cycles": 67705856,
+        "decode_attention_mean_cycles": 800039.1215686274,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0017997852357114,
+        "decode_attention_speedup": 1.0024496056996743,
+        "prefill_elasticity": 0.014372414626046215,
+        "decode_elasticity": 0.019548958357579416
+      },
+      "sweep_vector_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 66466176,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2563613709324875,
+              "array32_compute_cycles": 0.3845420563987313,
+              "dma_busy_cycles": 0.1301372896794905
+            }
+          },
+          "decode": {
+            "cycles": 201406896,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.35325265128955663,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.32602855862492414
+            }
+          }
+        },
+        "ttft_device_s": 41.527022202,
+        "decode_ms": 1104.8843308705882,
+        "tokens_s_user": 0.905072116655012,
+        "decode_speedup": 1.003259295920433,
+        "prefill_attention_cycles": 66466176,
+        "decode_attention_mean_cycles": 789830.9647058824,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0204846447010882,
+        "decode_attention_speedup": 1.0154057485698007,
+        "prefill_elasticity": 0.19764625000290328,
+        "decode_elasticity": 0.14938596787252195
+      },
+      "sweep_dma_setup": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67786752,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8455168,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2513671107888456,
+              "array32_compute_cycles": 0.3770506661832684,
+              "dma_busy_cycles": 0.12473186501102752
+            }
+          },
+          "decode": {
+            "cycles": 204346520,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 64154960,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.34817094022447753,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3139518108749784
+            }
+          }
+        },
+        "ttft_device_s": 42.166472277,
+        "decode_ms": 1099.053315862745,
+        "tokens_s_user": 0.9098739665918852,
+        "decode_speedup": 1.0085820768327294,
+        "prefill_attention_cycles": 67786752,
+        "decode_attention_mean_cycles": 801358.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0006042478624733,
+        "decode_attention_speedup": 1.0007986434023932,
+        "prefill_elasticity": 0.006038829674809289,
+        "decode_elasticity": 0.007980060801022761
+      },
+      "sweep_dram_read_start": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67796992,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8465408,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2513291445142581,
+              "array32_compute_cycles": 0.37699371677138716,
+              "dma_busy_cycles": 0.12486406476558724
+            }
+          },
+          "decode": {
+            "cycles": 204387320,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 64195760,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3481014379952729,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.31408876049649265
+            }
+          }
+        },
+        "ttft_device_s": 42.173049797,
+        "decode_ms": 1099.299335862745,
+        "tokens_s_user": 0.909670339439609,
+        "decode_speedup": 1.0083563590919398,
+        "prefill_attention_cycles": 67796992,
+        "decode_attention_mean_cycles": 801518.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0004531174480424,
+        "decode_attention_speedup": 1.0005988629823024,
+        "prefill_elasticity": 0.004529122256106134,
+        "decode_elasticity": 0.005985045600765961
+      },
+      "sweep_dram_write_start": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67820032,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8642048,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25124376231494555,
+              "array32_compute_cycles": 0.3768656434724183,
+              "dma_busy_cycles": 0.12742618582073215
+            }
+          },
+          "decode": {
+            "cycles": 204479120,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65633800,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.34794515938840115,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3209804502288547
+            }
+          }
+        },
+        "ttft_device_s": 42.223522297,
+        "decode_ms": 1108.3009608627451,
+        "tokens_s_user": 0.9022819931704839,
+        "decode_speedup": 1.0001664845619698,
+        "prefill_attention_cycles": 67820032,
+        "decode_attention_mean_cycles": 801878.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0001132408784472,
+        "decode_attention_speedup": 1.0001496485313512,
+        "prefill_elasticity": 0.001132280564026811,
+        "decode_elasticity": 0.0014962614001912127
+      },
+      "sweep_array_launch": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 65802496,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2589470162347641,
+              "array32_compute_cycles": 0.38842052435214613,
+              "dma_busy_cycles": 0.13144984652253922
+            }
+          },
+          "decode": {
+            "cycles": 198870040,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3577588660413605,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3301874932996443
+            }
+          }
+        },
+        "ttft_device_s": 41.429673485,
+        "decode_ms": 1089.4558313137254,
+        "tokens_s_user": 0.9178894373295935,
+        "decode_speedup": 1.0174671097276817,
+        "prefill_attention_cycles": 65802496,
+        "decode_attention_mean_cycles": 779882.5098039216,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0307771911873982,
+        "decode_attention_speedup": 1.0283586205342947,
+        "prefill_elasticity": 0.29858238473383875,
+        "decode_elasticity": 0.27576586579845747
+      },
+      "sweep_vector_launch": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67420672,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25273198107547784,
+              "array32_compute_cycles": 0.3790979716132168,
+              "dma_busy_cycles": 0.12829489447984144
+            }
+          },
+          "decode": {
+            "cycles": 201235880,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.35355285548481713,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3263056270084639
+            }
+          }
+        },
+        "ttft_device_s": 42.066146707,
+        "decode_ms": 1100.8452410392158,
+        "tokens_s_user": 0.9083928991290218,
+        "decode_speedup": 1.0069403350613721,
+        "prefill_attention_cycles": 67420672,
+        "decode_attention_mean_cycles": 789160.3137254902,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0060373174565806,
+        "decode_attention_speedup": 1.016268669384406,
+        "prefill_elasticity": 0.06001086989341432,
+        "decode_elasticity": 0.16008236674521006
+      },
+      "sweep_scratchpad_bytes": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "rowblocked": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 275693568,
+            "dram_read_bytes": 2168455168,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 67436544,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65069056,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2446068817971118,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.23601949248232007
+            }
+          },
+          "decode": {
+            "cycles": 278191856,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.2557498304335696,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.23603997954562697
+            }
+          }
+        },
+        "ttft_device_s": 48.880162829,
+        "decode_ms": 1117.731861556863,
+        "tokens_s_user": 0.8946689580872492,
+        "decode_speedup": 0.9917275457449708,
+        "prefill_attention_cycles": 275693568,
+        "decode_attention_mean_cycles": 1090948.4549019607,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 12151422976,
+        "prefill_attention_speedup": 0.2460257324537945,
+        "decode_attention_speedup": 0.7351391336200727
+      },
+      "independent_heads": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 112211968,
+            "dram_read_bytes": 1107296256,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 0,
+            "array32_compute_cycles": 34078720,
+            "dma_busy_cycles": 33026048,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.0,
+              "array32_compute_cycles": 0.30369951269369055,
+              "dma_busy_cycles": 0.2943184099578398
+            }
+          },
+          "decode": {
+            "cycles": 813629600,
+            "dram_read_bytes": 9093242880,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 284590080,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 262461760,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3497784249737227,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3225813810117036
+            }
+          }
+        },
+        "ttft_device_s": 43.648751629,
+        "decode_ms": 1184.9240490392158,
+        "tokens_s_user": 0.8439359474650213,
+        "decode_speedup": 0.9354907403234408,
+        "prefill_attention_cycles": 112211968,
+        "decode_attention_mean_cycles": 3190704.31372549,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 11090264064,
+        "prefill_attention_speedup": 0.6044605865926885,
+        "decode_attention_speedup": 0.25135481796630804
+      },
+      "sweep_mac_rate": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 65635840,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 15578112,
+            "array32_compute_cycles": 23367168,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2373415499824486,
+              "array32_compute_cycles": 0.3560123249736729,
+              "dma_busy_cycles": 0.13178361090526153
+            }
+          },
+          "decode": {
+            "cycles": 198397592,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 65035392,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3278033334194903,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.33097377512525455
+            }
+          }
+        },
+        "ttft_device_s": 40.470172941,
+        "decode_ms": 1065.5780477215685,
+        "tokens_s_user": 0.9384577714773795,
+        "decode_speedup": 1.0402668093931942,
+        "prefill_attention_cycles": 65635840,
+        "decode_attention_mean_cycles": 778029.7725490197,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0333944381606146,
+        "decode_attention_speedup": 1.0308074706874466,
+        "prefill_elasticity": 0.32315287297321665,
+        "decode_elasticity": 0.2988673594585131
+      },
+      "a16exact": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1136744448,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2398338170726654,
+              "array32_compute_cycles": 0.35975072560899807,
+              "dma_busy_cycles": 0.007609210685144248
+            }
+          },
+          "decode": {
+            "cycles": 2926249624,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3890168188877655,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.022439780756038467
+            }
+          }
+        },
+        "ttft_device_s": 334.828200845,
+        "decode_ms": 7513.676574090196,
+        "tokens_s_user": 0.13309063680600153,
+        "decode_speedup": 0.14752903787277635,
+        "prefill_attention_cycles": 1136744448,
+        "decode_attention_mean_cycles": 11475488.721568627,
+        "peak_layer_sram_B": 786432,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 0.059668390832554125,
+        "decode_attention_speedup": 0.06988799531068304
+      },
+      "fixedshift": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 67827712,
+            "dram_read_bytes": 289406976,
+            "dram_write_bytes": 16777216,
+            "array16_compute_cycles": 17039360,
+            "array32_compute_cycles": 25559040,
+            "dma_busy_cycles": 8649728,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 204509720,
+            "dram_read_bytes": 2274877440,
+            "dram_write_bytes": 2088960,
+            "array16_compute_cycles": 71147520,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 65664400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 42.228455437,
+        "decode_ms": 1108.485475862745,
+        "tokens_s_user": 0.9021318021525634,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 67827712,
+        "decode_attention_mean_cycles": 801998.9019607843,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 10272374784,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      }
+    },
+    "16": {
+      "baseline": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "naive": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1606082560,
+            "dram_read_bytes": 8992587776,
+            "dram_write_bytes": 4630511616,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 535830528,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.16974828492004795,
+              "array32_compute_cycles": 0.2546224273800719,
+              "dma_busy_cycles": 0.3336257682793094
+            }
+          },
+          "decode": {
+            "cycles": 5149792000,
+            "dram_read_bytes": 37534433280,
+            "dram_write_bytes": 1169817600,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1942904064,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.22104976667018786,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.37727816269084263
+            }
+          }
+        },
+        "ttft_device_s": 686.916366652,
+        "decode_ms": 1761.8444038431373,
+        "tokens_s_user": 0.567587011553736,
+        "decode_speedup": 0.8662623274080029,
+        "prefill_attention_cycles": 1606082560,
+        "decode_attention_mean_cycles": 20195262.74509804,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 171991629824,
+        "prefill_attention_speedup": 0.6757083471474842,
+        "decode_attention_speedup": 0.6353956664657524
+      },
+      "exact4": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 4286021632,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 1090519040,
+            "array32_compute_cycles": 1635778560,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25443619599538225,
+              "array32_compute_cycles": 0.3816542939930733,
+              "dma_busy_cycles": 0.03229000221714233
+            }
+          },
+          "decode": {
+            "cycles": 12457646464,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 4553441280,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.36551376643722355,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.08433618685809577
+            }
+          }
+        },
+        "ttft_device_s": 2405.509184188,
+        "decode_ms": 5352.992717443137,
+        "tokens_s_user": 0.1868113880935095,
+        "decode_speedup": 0.28511517096420075,
+        "prefill_attention_cycles": 4286021632,
+        "decode_attention_mean_cycles": 48853515.54509804,
+        "peak_layer_sram_B": 590848,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 0.25320529973470746,
+        "decode_attention_speedup": 0.26266241616792124
+      },
+      "bounded": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "saturate": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "queued_delivery": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 759644160,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 121294848,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.3588914051547504,
+              "array32_compute_cycles": 0.5383371077321255,
+              "dma_busy_cycles": 0.15967324490456164
+            }
+          },
+          "decode": {
+            "cycles": 2395777920,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 923347200,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.47515268860980236,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3854060062461883
+            }
+          }
+        },
+        "ttft_device_s": 546.493783452,
+        "decode_ms": 1209.8258369411765,
+        "tokens_s_user": 0.8265652538288629,
+        "decode_speedup": 1.2615199537006818,
+        "prefill_attention_cycles": 759644160,
+        "decode_attention_mean_cycles": 9395207.529411765,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.4286207268413673,
+        "decode_attention_speedup": 1.3658008501889858
+      },
+      "duplex_dma": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "transpose_decode": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.241882044,
+        "decode_ms": 1417.2040098039215,
+        "tokens_s_user": 0.7056147125482349,
+        "decode_speedup": 1.076922887069084,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      },
+      "overlap_drain": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1485799424,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.1834902851597821,
+              "array32_compute_cycles": 0.27523542773967313,
+              "dma_busy_cycles": 0.09314557925148315
+            }
+          },
+          "decode": {
+            "cycles": 3776553344,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.30142837034423736,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.27819821522425714
+            }
+          }
+        },
+        "ttft_device_s": 827.377420604,
+        "decode_ms": 1692.1191676392157,
+        "tokens_s_user": 0.5909749260716456,
+        "decode_speedup": 0.9019574170613813,
+        "prefill_attention_cycles": 1485799424,
+        "decode_attention_mean_cycles": 14810013.11372549,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 0.7304104271883202,
+        "decode_attention_speedup": 0.8664396400486803
+      },
+      "double_buffer": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1194360832,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.22826414990809077,
+              "array32_compute_cycles": 0.3423962248621361,
+              "dma_busy_cycles": 0.11587423523279103
+            }
+          },
+          "decode": {
+            "cycles": 4237726080,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.26862527178726947,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.24792315033254816
+            }
+          }
+        },
+        "ttft_device_s": 673.741271356,
+        "decode_ms": 1647.3890727058822,
+        "tokens_s_user": 0.6070211442871065,
+        "decode_speedup": 0.9264474671408762,
+        "prefill_attention_cycles": 1194360832,
+        "decode_attention_mean_cycles": 16618533.647058824,
+        "peak_layer_sram_B": 361472,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 0.908639468846882,
+        "decode_attention_speedup": 0.7721488973633709
+      },
+      "wavefront_fill": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1235599360,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 338001920,
+            "array32_compute_cycles": 559300608,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2735530066962806,
+              "array32_compute_cycles": 0.45265530729960884,
+              "dma_busy_cycles": 0.11200689518000398
+            }
+          },
+          "decode": {
+            "cycles": 3542860160,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1409064960,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3977196096839453,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.2965486506811491
+            }
+          }
+        },
+        "ttft_device_s": 728.59901318,
+        "decode_ms": 1615.1559721568628,
+        "tokens_s_user": 0.6191352520986628,
+        "decode_speedup": 0.9449362539060693,
+        "prefill_attention_cycles": 1235599360,
+        "decode_attention_mean_cycles": 13893569.25490196,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 0.8783133328913346,
+        "decode_attention_speedup": 0.9235914973285314
+      },
+      "query_tile": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1460240384,
+            "dram_read_bytes": 8925478912,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 541065216,
+            "array32_compute_cycles": 270532608,
+            "dma_busy_cycles": 267354112,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.3705316069384916,
+              "array32_compute_cycles": 0.1852658034692458,
+              "dma_busy_cycles": 0.18308910979960955
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 682.24941702,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1460240384,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 328192,
+        "prefill_layer_dram_B": 167562444800,
+        "prefill_attention_speedup": 0.7431950272647713,
+        "decode_attention_speedup": 1.0
+      },
+      "key_tile": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1399193600,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 190824448,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.19484777517564403,
+              "array32_compute_cycles": 0.29227166276346606,
+              "dma_busy_cycles": 0.13638173302107728
+            }
+          },
+          "decode": {
+            "cycles": 4358845568,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1494432000,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.26116096618727463,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.34285041226769153
+            }
+          }
+        },
+        "ttft_device_s": 680.295919932,
+        "decode_ms": 1662.5883810039215,
+        "tokens_s_user": 0.6014717842525578,
+        "decode_speedup": 0.9179779260109732,
+        "prefill_attention_cycles": 1399193600,
+        "decode_attention_mean_cycles": 17093512.03137255,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 0.7756206088992974,
+        "decode_attention_speedup": 0.7506931523388166
+      },
+      "double_output_port": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1076330496,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25329558254939566,
+              "array32_compute_cycles": 0.37994337382409354,
+              "dma_busy_cycles": 0.12858099674247267
+            }
+          },
+          "decode": {
+            "cycles": 3235602816,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.35182325666513453,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.324709323037009
+            }
+          }
+        },
+        "ttft_device_s": 667.632803132,
+        "decode_ms": 1514.3036598117646,
+        "tokens_s_user": 0.6603695325707031,
+        "decode_speedup": 1.0078688141014187,
+        "prefill_attention_cycles": 1076330496,
+        "decode_attention_mean_cycles": 12688638.494117647,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0082808171218072,
+        "decode_attention_speedup": 1.011297030593263
+      },
+      "double_both_dma_links": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1076953088,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 100122624,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2531491510983996,
+              "array32_compute_cycles": 0.37972372664759935,
+              "dma_busy_cycles": 0.09296841720927403
+            }
+          },
+          "decode": {
+            "cycles": 3254921600,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 766009600,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3497350965381163,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.23533887882276489
+            }
+          }
+        },
+        "ttft_device_s": 639.707686332,
+        "decode_ms": 1449.5531938039214,
+        "tokens_s_user": 0.6898677497828122,
+        "decode_speedup": 1.052889566473109,
+        "prefill_attention_cycles": 1076953088,
+        "decode_attention_mean_cycles": 12764398.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.007697924907199,
+        "decode_attention_speedup": 1.0052947266072398
+      },
+      "sweep_dma_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_sram_dma_rate": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_array16_input_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_array32_input_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "sweep_array_output_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1083293696,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2516674480860267,
+              "array32_compute_cycles": 0.37750117212904005,
+              "dma_busy_cycles": 0.1277545032441507
+            }
+          },
+          "decode": {
+            "cycles": 3264159616,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.34874529861226,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3218685737211204
+            }
+          }
+        },
+        "ttft_device_s": 669.677107932,
+        "decode_ms": 1523.6128582431375,
+        "tokens_s_user": 0.6563347077243034,
+        "decode_speedup": 1.0017107860088486,
+        "prefill_attention_cycles": 1083293696,
+        "decode_attention_mean_cycles": 12800625.945098039,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0017997852357114,
+        "decode_attention_speedup": 1.0024496056996743,
+        "prefill_elasticity": 0.014372414626046215,
+        "decode_elasticity": 0.019548958357579416
+      },
+      "sweep_vector_bytes_per_cycle": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1063458816,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2563613709324875,
+              "array32_compute_cycles": 0.3845420563987313,
+              "dma_busy_cycles": 0.1301372896794905
+            }
+          },
+          "decode": {
+            "cycles": 3222510336,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.35325265128955663,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.32602855862492414
+            }
+          }
+        },
+        "ttft_device_s": 659.027601264,
+        "decode_ms": 1516.6716139294117,
+        "tokens_s_user": 0.659338508623622,
+        "decode_speedup": 1.0062952453166663,
+        "prefill_attention_cycles": 1063458816,
+        "decode_attention_mean_cycles": 12637295.435294118,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0204846447010882,
+        "decode_attention_speedup": 1.0154057485698007,
+        "prefill_elasticity": 0.19764625000290328,
+        "decode_elasticity": 0.14938596787252195
+      },
+      "sweep_dma_setup": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1084588032,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 135282688,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2513671107888456,
+              "array32_compute_cycles": 0.3770506661832684,
+              "dma_busy_cycles": 0.12473186501102752
+            }
+          },
+          "decode": {
+            "cycles": 3269544320,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1026479360,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.34817094022447753,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3139518108749784
+            }
+          }
+        },
+        "ttft_device_s": 669.290093636,
+        "decode_ms": 1516.4061938039215,
+        "tokens_s_user": 0.6594539141860725,
+        "decode_speedup": 1.0064713795288474,
+        "prefill_attention_cycles": 1084588032,
+        "decode_attention_mean_cycles": 12821742.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0006042478624733,
+        "decode_attention_speedup": 1.0007986434023932,
+        "prefill_elasticity": 0.006038829674809289,
+        "decode_elasticity": 0.007980060801022761
+      },
+      "sweep_dram_read_start": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1084751872,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 135446528,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2513291445142581,
+              "array32_compute_cycles": 0.37699371677138716,
+              "dma_busy_cycles": 0.12486406476558724
+            }
+          },
+          "decode": {
+            "cycles": 3270197120,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1027132160,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3481014379952729,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.31408876049649265
+            }
+          }
+        },
+        "ttft_device_s": 669.393951516,
+        "decode_ms": 1516.7546338039215,
+        "tokens_s_user": 0.6593024195957559,
+        "decode_speedup": 1.0062401655409898,
+        "prefill_attention_cycles": 1084751872,
+        "decode_attention_mean_cycles": 12824302.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0004531174480424,
+        "decode_attention_speedup": 1.0005988629823024,
+        "prefill_elasticity": 0.004529122256106134,
+        "decode_elasticity": 0.005985045600765961
+      },
+      "sweep_dram_write_start": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085120512,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138272768,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25124376231494555,
+              "array32_compute_cycles": 0.3768656434724183,
+              "dma_busy_cycles": 0.12742618582073215
+            }
+          },
+          "decode": {
+            "cycles": 3271665920,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050140800,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.34794515938840115,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3209804502288547
+            }
+          }
+        },
+        "ttft_device_s": 670.171619866,
+        "decode_ms": 1525.9581038039214,
+        "tokens_s_user": 0.6553259866749889,
+        "decode_speedup": 1.0001712563400977,
+        "prefill_attention_cycles": 1085120512,
+        "decode_attention_mean_cycles": 12830062.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0001132408784472,
+        "decode_attention_speedup": 1.0001496485313512,
+        "prefill_elasticity": 0.001132280564026811,
+        "decode_elasticity": 0.0014962614001912127
+      },
+      "sweep_array_launch": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1052839936,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2589470162347641,
+              "array32_compute_cycles": 0.38842052435214613,
+              "dma_busy_cycles": 0.13144984652253922
+            }
+          },
+          "decode": {
+            "cycles": 3181920640,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3577588660413605,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3301874932996443
+            }
+          }
+        },
+        "ttft_device_s": 657.573437244,
+        "decode_ms": 1496.5739210196077,
+        "tokens_s_user": 0.6681928543287092,
+        "decode_speedup": 1.0198089198053888,
+        "prefill_attention_cycles": 1052839936,
+        "decode_attention_mean_cycles": 12478120.156862745,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0307771911873982,
+        "decode_attention_speedup": 1.0283586205342947,
+        "prefill_elasticity": 0.29858238473383875,
+        "decode_elasticity": 0.27576586579845747
+      },
+      "sweep_vector_launch": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1078730752,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.25273198107547784,
+              "array32_compute_cycles": 0.3790979716132168,
+              "dma_busy_cycles": 0.12829489447984144
+            }
+          },
+          "decode": {
+            "cycles": 3219774080,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.35355285548481713,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3263056270084639
+            }
+          }
+        },
+        "ttft_device_s": 667.725754456,
+        "decode_ms": 1512.381816627451,
+        "tokens_s_user": 0.661208690163942,
+        "decode_speedup": 1.0091495527282441,
+        "prefill_attention_cycles": 1078730752,
+        "decode_attention_mean_cycles": 12626565.019607844,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0060373174565806,
+        "decode_attention_speedup": 1.016268669384406,
+        "prefill_elasticity": 0.06001086989341432,
+        "decode_elasticity": 0.16008236674521006
+      },
+      "sweep_scratchpad_bytes": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0,
+        "prefill_elasticity": 0.0,
+        "decode_elasticity": 0.0
+      },
+      "rowblocked": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 4411097088,
+            "dram_read_bytes": 34695282688,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 1078984704,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1041104896,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2446068817971118,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.23601949248232007
+            }
+          },
+          "decode": {
+            "cycles": 4451069696,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.2557498304335696,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.23603997954562697
+            }
+          }
+        },
+        "ttft_device_s": 776.676831548,
+        "decode_ms": 1674.1616049098038,
+        "tokens_s_user": 0.5973139015178139,
+        "decode_speedup": 0.9116320845777294,
+        "prefill_attention_cycles": 4411097088,
+        "decode_attention_mean_cycles": 17455175.27843137,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 193332248576,
+        "prefill_attention_speedup": 0.2460257324537945,
+        "decode_attention_speedup": 0.7351391336200727
+      },
+      "independent_heads": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1795391488,
+            "dram_read_bytes": 17716740096,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 0,
+            "array32_compute_cycles": 545259520,
+            "dma_busy_cycles": 528416768,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.0,
+              "array32_compute_cycles": 0.30369951269369055,
+              "dma_busy_cycles": 0.2943184099578398
+            }
+          },
+          "decode": {
+            "cycles": 13018073600,
+            "dram_read_bytes": 145491886080,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 4553441280,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 4199388160,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3497784249737227,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3225813810117036
+            }
+          }
+        },
+        "ttft_device_s": 692.974252348,
+        "decode_ms": 2749.236604627451,
+        "tokens_s_user": 0.36373733650891427,
+        "decode_speedup": 0.5551429917799816,
+        "prefill_attention_cycles": 1795391488,
+        "decode_attention_mean_cycles": 51051269.01960784,
+        "peak_layer_sram_B": 327680,
+        "prefill_layer_dram_B": 176353705984,
+        "prefill_attention_speedup": 0.6044605865926885,
+        "decode_attention_speedup": 0.25135481796630804
+      },
+      "sweep_mac_rate": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1050173440,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 249249792,
+            "array32_compute_cycles": 373874688,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2373415499824486,
+              "array32_compute_cycles": 0.3560123249736729,
+              "dma_busy_cycles": 0.13178361090526153
+            }
+          },
+          "decode": {
+            "cycles": 3174361472,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1040566272,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3278033334194903,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.33097377512525455
+            }
+          }
+        },
+        "ttft_device_s": 642.3571943,
+        "decode_ms": 1471.806823545098,
+        "tokens_s_user": 0.6794369913242617,
+        "decode_speedup": 1.0369699402043546,
+        "prefill_attention_cycles": 1050173440,
+        "decode_attention_mean_cycles": 12448476.360784315,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0333944381606146,
+        "decode_attention_speedup": 1.0308074706874466,
+        "prefill_elasticity": 0.32315287297321665,
+        "decode_elasticity": 0.2988673594585131
+      },
+      "a16exact": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 18187911168,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 4362076160,
+            "array32_compute_cycles": 6543114240,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2398338170726654,
+              "array32_compute_cycles": 0.35975072560899807,
+              "dma_busy_cycles": 0.007609210685144248
+            }
+          },
+          "decode": {
+            "cycles": 46819993984,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 18213765120,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3890168188877655,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.022439780756038467
+            }
+          }
+        },
+        "ttft_device_s": 5319.327333564,
+        "decode_ms": 13054.685645443138,
+        "tokens_s_user": 0.07660084870362692,
+        "decode_speedup": 0.11690970393734933,
+        "prefill_attention_cycles": 18187911168,
+        "decode_attention_mean_cycles": 183607819.54509804,
+        "peak_layer_sram_B": 786432,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 0.059668390832554125,
+        "decode_attention_speedup": 0.06988799531068304
+      },
+      "fixedshift": {
+        "attention_counters": {
+          "prefill": {
+            "cycles": 1085243392,
+            "dram_read_bytes": 4630511616,
+            "dram_write_bytes": 268435456,
+            "array16_compute_cycles": 272629760,
+            "array32_compute_cycles": 408944640,
+            "dma_busy_cycles": 138395648,
+            "steps": 1,
+            "utilization": {
+              "array16_compute_cycles": 0.2512153144720553,
+              "array32_compute_cycles": 0.376822971708083,
+              "dma_busy_cycles": 0.12752498565777953
+            }
+          },
+          "decode": {
+            "cycles": 3272155520,
+            "dram_read_bytes": 36398039040,
+            "dram_write_bytes": 33423360,
+            "array16_compute_cycles": 1138360320,
+            "array32_compute_cycles": 0,
+            "dma_busy_cycles": 1050630400,
+            "steps": 255,
+            "utilization": {
+              "array16_compute_cycles": 0.3478930976972635,
+              "array32_compute_cycles": 0.0,
+              "dma_busy_cycles": 0.3210820493030845
+            }
+          }
+        },
+        "ttft_device_s": 670.249513276,
+        "decode_ms": 1526.2194338039214,
+        "tokens_s_user": 0.6552137771615306,
+        "decode_speedup": 1.0,
+        "prefill_attention_cycles": 1085243392,
+        "decode_attention_mean_cycles": 12831982.43137255,
+        "peak_layer_sram_B": 459776,
+        "prefill_layer_dram_B": 163267477504,
+        "prefill_attention_speedup": 1.0,
+        "decode_attention_speedup": 1.0
+      }
+    }
+  },
+  "four": [
+    {
+      "microbatches": 1,
+      "dp": 4,
+      "tp": 1,
+      "pp": 1,
+      "network": "serial",
+      "rank_resident_estimate_B": 10145505280,
+      "device_limit_tokens_s_user": 0.8389927269957481,
+      "up_B_step": 64,
+      "down_B_step": 64,
+      "minimum_GB_s_for_70pct": 2.505791611293967e-07,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 167.832674254,
+      "decode_tokens_s_user_at_link": 0.8389927213644778
+    },
+    {
+      "microbatches": 1,
+      "dp": 4,
+      "tp": 1,
+      "pp": 1,
+      "network": "chunked",
+      "rank_resident_estimate_B": 10145505280,
+      "device_limit_tokens_s_user": 0.8389927269957481,
+      "up_B_step": 64,
+      "down_B_step": 64,
+      "minimum_GB_s_for_70pct": 1.2528958056469835e-07,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 167.83267425,
+      "decode_tokens_s_user_at_link": 0.838992724180113
+    },
+    {
+      "microbatches": 1,
+      "dp": 4,
+      "tp": 1,
+      "pp": 1,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 10145505280,
+      "device_limit_tokens_s_user": 0.8389927269957481,
+      "up_B_step": 64,
+      "down_B_step": 64,
+      "minimum_GB_s_for_70pct": 3.758687416940951e-08,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 167.832666058,
+      "decode_tokens_s_user_at_link": 0.8389927269957481
+    },
+    {
+      "microbatches": 1,
+      "dp": 4,
+      "tp": 1,
+      "pp": 1,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 10145505280,
+      "device_limit_tokens_s_user": 0.8389927269957481,
+      "up_B_step": 64,
+      "down_B_step": 64,
+      "minimum_GB_s_for_70pct": 2.5058014222567536e-07,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 167.832676254,
+      "decode_tokens_s_user_at_link": 0.8389913135492671
+    },
+    {
+      "microbatches": 1,
+      "dp": 4,
+      "tp": 1,
+      "pp": 1,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 10145505280,
+      "device_limit_tokens_s_user": 0.8389927269957481,
+      "up_B_step": 64,
+      "down_B_step": 64,
+      "minimum_GB_s_for_70pct": 2.5058504782230996e-07,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 167.832686254,
+      "decode_tokens_s_user_at_link": 0.8389842745440816
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 4,
+      "pp": 1,
+      "network": "serial",
+      "rank_resident_estimate_B": 8031576064,
+      "device_limit_tokens_s_user": 2.258513505585449,
+      "up_B_step": 33554496,
+      "down_B_step": 33554688,
+      "minimum_GB_s_for_70pct": 0.35365632962991084,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 179.621616704,
+      "decode_tokens_s_user_at_link": 2.237319517847291
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 4,
+      "pp": 1,
+      "network": "chunked",
+      "rank_resident_estimate_B": 8031576064,
+      "device_limit_tokens_s_user": 2.258513505585449,
+      "up_B_step": 33554496,
+      "down_B_step": 33554688,
+      "minimum_GB_s_for_70pct": 0.17682867072198066,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 175.326649404,
+      "decode_tokens_s_user_at_link": 2.2478665256828525
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 4,
+      "pp": 1,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 8031576064,
+      "device_limit_tokens_s_user": 2.258513505585449,
+      "up_B_step": 33554496,
+      "down_B_step": 33554688,
+      "minimum_GB_s_for_70pct": 0.0530486012165942,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 171.03164934,
+      "decode_tokens_s_user_at_link": 2.258513505585449
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 4,
+      "pp": 1,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 8031576064,
+      "device_limit_tokens_s_user": 2.258513505585449,
+      "up_B_step": 33554496,
+      "down_B_step": 33554688,
+      "minimum_GB_s_for_70pct": 0.353898779465731,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 179.621746704,
+      "decode_tokens_s_user_at_link": 2.236668979236204
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 4,
+      "pp": 1,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 8031576064,
+      "device_limit_tokens_s_user": 2.258513505585449,
+      "up_B_step": 33554496,
+      "down_B_step": 33554688,
+      "minimum_GB_s_for_70pct": 0.355490112620668,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 181.3397436224,
+      "decode_tokens_s_user_at_link": 2.2324304407707625
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "serial",
+      "rank_resident_estimate_B": 7505846272,
+      "device_limit_tokens_s_user": 0.6552137771615306,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0012025182133164043,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 670.350184768,
+      "decode_tokens_s_user_at_link": 0.6551926732028853
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "chunked",
+      "rank_resident_estimate_B": 7505846272,
+      "device_limit_tokens_s_user": 0.6552137771615306,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0006012591066582022,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 670.299853116,
+      "decode_tokens_s_user_at_link": 0.6552032250122695
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 7505846272,
+      "device_limit_tokens_s_user": 0.6552137771615306,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0001803777319974607,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 670.249513276,
+      "decode_tokens_s_user_at_link": 0.6552137771615306
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 7505846272,
+      "device_limit_tokens_s_user": 0.6552137771615306,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.001202532921084302,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 670.350192768,
+      "decode_tokens_s_user_at_link": 0.6551892390013737
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 7505846272,
+      "device_limit_tokens_s_user": 0.6552137771615306,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0012025513063001168,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 670.350202768,
+      "decode_tokens_s_user_at_link": 0.6551849463001099
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "serial",
+      "rank_resident_estimate_B": 5425471488,
+      "device_limit_tokens_s_user": 0.5928318132706861,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0010880281791077785,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 419.683529828,
+      "decode_tokens_s_user_at_link": 0.5928145365138814
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "chunked",
+      "rank_resident_estimate_B": 5425471488,
+      "device_limit_tokens_s_user": 0.5928318132706861,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0005440140895538893,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 419.633198176,
+      "decode_tokens_s_user_at_link": 0.5928231747664089
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 5425471488,
+      "device_limit_tokens_s_user": 0.5928318132706861,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0001632042268661668,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 419.582858336,
+      "decode_tokens_s_user_at_link": 0.5928318132706861
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 5425471488,
+      "device_limit_tokens_s_user": 0.5928318132706861,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0010880522603022363,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 419.683545828,
+      "decode_tokens_s_user_at_link": 0.5928089137020187
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 5425471488,
+      "device_limit_tokens_s_user": 0.5928318132706861,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.001088067311590094,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 419.683555828,
+      "decode_tokens_s_user_at_link": 0.5928053994987695
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "serial",
+      "rank_resident_estimate_B": 4385284096,
+      "device_limit_tokens_s_user": 0.4429518938158083,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0008129525637327783,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 293.971367404,
+      "decode_tokens_s_user_at_link": 0.4429422485201872
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "chunked",
+      "rank_resident_estimate_B": 4385284096,
+      "device_limit_tokens_s_user": 0.4429518938158083,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.00040647628186638913,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 293.921035752,
+      "decode_tokens_s_user_at_link": 0.4429470711154905
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 4385284096,
+      "device_limit_tokens_s_user": 0.4429518938158083,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.00012194288455991675,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 293.870695912,
+      "decode_tokens_s_user_at_link": 0.4429518938158083
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 4385284096,
+      "device_limit_tokens_s_user": 0.4429518938158083,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0008129794520049414,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 293.971399404,
+      "decode_tokens_s_user_at_link": 0.4429359702784392
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 1,
+      "pp": 4,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 4385284096,
+      "device_limit_tokens_s_user": 0.4429518938158083,
+      "up_B_step": 393280,
+      "down_B_step": 393280,
+      "minimum_GB_s_for_70pct": 0.0008129878549547585,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 293.971409404,
+      "decode_tokens_s_user_at_link": 0.44293400836439156
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 2,
+      "pp": 1,
+      "network": "serial",
+      "rank_resident_estimate_B": 7696031744,
+      "device_limit_tokens_s_user": 1.4464133516595485,
+      "up_B_step": 16777280,
+      "down_B_step": 16777344,
+      "minimum_GB_s_for_70pct": 0.11324566438153712,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 173.282929396,
+      "decode_tokens_s_user_at_link": 1.4420391192099298
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 2,
+      "pp": 1,
+      "network": "chunked",
+      "rank_resident_estimate_B": 7696031744,
+      "device_limit_tokens_s_user": 1.4464133516595485,
+      "up_B_step": 16777280,
+      "down_B_step": 16777344,
+      "minimum_GB_s_for_70pct": 0.056622940189632154,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 171.135445744,
+      "decode_tokens_s_user_at_link": 1.4442229191246354
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 2,
+      "pp": 1,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 7696031744,
+      "device_limit_tokens_s_user": 1.4464133516595485,
+      "up_B_step": 16777280,
+      "down_B_step": 16777344,
+      "minimum_GB_s_for_70pct": 0.01698688205688965,
+      "predicted_fraction_at_min": 0.7000000000000001,
+      "ttft_at_link_s": 168.987945712,
+      "decode_tokens_s_user_at_link": 1.4464133516595485
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 2,
+      "pp": 1,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 7696031744,
+      "device_limit_tokens_s_user": 1.4464133516595485,
+      "up_B_step": 16777280,
+      "down_B_step": 16777344,
+      "minimum_GB_s_for_70pct": 0.11329537220304463,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 173.283059396,
+      "decode_tokens_s_user_at_link": 1.4417688378914673
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 2,
+      "pp": 1,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 7696031744,
+      "device_limit_tokens_s_user": 1.4464133516595485,
+      "up_B_step": 16777280,
+      "down_B_step": 16777344,
+      "minimum_GB_s_for_70pct": 0.113492075001118,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 174.31386154704,
+      "decode_tokens_s_user_at_link": 1.4407025973756287
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "serial",
+      "rank_resident_estimate_B": 7170433024,
+      "device_limit_tokens_s_user": 0.7672807106072269,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.0004695512419088834,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 335.658080244,
+      "decode_tokens_s_user_at_link": 0.7672710604354598
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "chunked",
+      "rank_resident_estimate_B": 7170433024,
+      "device_limit_tokens_s_user": 0.7672807106072269,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.0002347756209544417,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 335.641303024,
+      "decode_tokens_s_user_at_link": 0.7672758854910003
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 7170433024,
+      "device_limit_tokens_s_user": 0.7672807106072269,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 7.043268628633251e-05,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 335.624517616,
+      "decode_tokens_s_user_at_link": 0.7672807106072269
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 7170433024,
+      "device_limit_tokens_s_user": 0.7672807106072269,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.0004695546045239959,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 335.658084244,
+      "decode_tokens_s_user_at_link": 0.7672687056231662
+    },
+    {
+      "microbatches": 1,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 7170433024,
+      "device_limit_tokens_s_user": 0.7672807106072269,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.00046956301127248825,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 335.658094244,
+      "decode_tokens_s_user_at_link": 0.7672628186556687
+    },
+    {
+      "microbatches": 2,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "serial",
+      "rank_resident_estimate_B": 6130245632,
+      "device_limit_tokens_s_user": 0.5476384147856245,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.0003351371854195289,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 251.815248152,
+      "decode_tokens_s_user_at_link": 0.547633498740551
+    },
+    {
+      "microbatches": 2,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "chunked",
+      "rank_resident_estimate_B": 6130245632,
+      "device_limit_tokens_s_user": 0.5476384147856245,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.00016756859270976445,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 251.798470932,
+      "decode_tokens_s_user_at_link": 0.5476359567520551
+    },
+    {
+      "microbatches": 2,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 6130245632,
+      "device_limit_tokens_s_user": 0.5476384147856245,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 5.027057781292935e-05,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 251.781685524,
+      "decode_tokens_s_user_at_link": 0.5476384147856245
+    },
+    {
+      "microbatches": 2,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 6130245632,
+      "device_limit_tokens_s_user": 0.5476384147856245,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.0003351406114224947,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 251.815256152,
+      "decode_tokens_s_user_at_link": 0.5476310995314706
+    },
+    {
+      "microbatches": 2,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 6130245632,
+      "device_limit_tokens_s_user": 0.5476384147856245,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.00033514489402470534,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 251.815266152,
+      "decode_tokens_s_user_at_link": 0.5476281005496821
+    },
+    {
+      "microbatches": 4,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "serial",
+      "rank_resident_estimate_B": 5610151936,
+      "device_limit_tokens_s_user": 0.33844062204538294,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.00020711483059186885,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 211.179639348,
+      "decode_tokens_s_user_at_link": 0.33843874448243927
+    },
+    {
+      "microbatches": 4,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "chunked",
+      "rank_resident_estimate_B": 5610151936,
+      "device_limit_tokens_s_user": 0.33844062204538294,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.00010355741529593443,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 211.162862128,
+      "decode_tokens_s_user_at_link": 0.3384396832613071
+    },
+    {
+      "microbatches": 4,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 5610151936,
+      "device_limit_tokens_s_user": 0.33844062204538294,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 3.106722458878033e-05,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 211.14607672,
+      "decode_tokens_s_user_at_link": 0.33844062204538294
+    },
+    {
+      "microbatches": 4,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 5610151936,
+      "device_limit_tokens_s_user": 0.33844062204538294,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.00020711744754495944,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 211.179655348,
+      "decode_tokens_s_user_at_link": 0.33843691183982283
+    },
+    {
+      "microbatches": 4,
+      "dp": 2,
+      "tp": 1,
+      "pp": 2,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 5610151936,
+      "device_limit_tokens_s_user": 0.33844062204538294,
+      "up_B_step": 131136,
+      "down_B_step": 131136,
+      "minimum_GB_s_for_70pct": 0.0002071190831742239,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 211.179665348,
+      "decode_tokens_s_user_at_link": 0.3384357664482663
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "serial",
+      "rank_resident_estimate_B": 7505977344,
+      "device_limit_tokens_s_user": 1.2439671528656606,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.09853666169839093,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 341.782942784,
+      "decode_tokens_s_user_at_link": 1.2406925002628892
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "chunked",
+      "rank_resident_estimate_B": 7505977344,
+      "device_limit_tokens_s_user": 1.2439671528656606,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.04945864787184669,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 339.618681916,
+      "decode_tokens_s_user_at_link": 1.2423213439221057
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 7505977344,
+      "device_limit_tokens_s_user": 1.2439671528656606,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.014837594361554012,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 337.437627452,
+      "decode_tokens_s_user_at_link": 1.2439671528656606
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 7505977344,
+      "device_limit_tokens_s_user": 1.2439671528656606,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.09857442969100653,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 341.783074784,
+      "decode_tokens_s_user_at_link": 1.240489343573959
+    },
+    {
+      "microbatches": 1,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 7505977344,
+      "device_limit_tokens_s_user": 1.2439671528656606,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.09872157601393468,
+      "predicted_fraction_at_min": 0.6999999999999998,
+      "ttft_at_link_s": 342.81387693503996,
+      "decode_tokens_s_user_at_link": 1.2396999477434032
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "serial",
+      "rank_resident_estimate_B": 5425602560,
+      "device_limit_tokens_s_user": 0.9297968309739424,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.07365071945095769,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 257.85473418,
+      "decode_tokens_s_user_at_link": 0.9279661512953075
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "chunked",
+      "rank_resident_estimate_B": 5425602560,
+      "device_limit_tokens_s_user": 0.9297968309739424,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.03696761120224321,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 255.690473312,
+      "decode_tokens_s_user_at_link": 0.9288770533196083
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 5425602560,
+      "device_limit_tokens_s_user": 0.9297968309739424,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.011090283360672963,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 253.509418848,
+      "decode_tokens_s_user_at_link": 0.9297968309739424
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 5425602560,
+      "device_limit_tokens_s_user": 0.9297968309739424,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.07369292743239907,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 257.85499818,
+      "decode_tokens_s_user_at_link": 0.9277388709841558
+    },
+    {
+      "microbatches": 2,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 5425602560,
+      "device_limit_tokens_s_user": 0.9297968309739424,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.07377513444752448,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 258.88580033104,
+      "decode_tokens_s_user_at_link": 0.9272972700920619
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "serial",
+      "rank_resident_estimate_B": 4385415168,
+      "device_limit_tokens_s_user": 0.5874837240076353,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.046535541418835834,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 215.751244588,
+      "decode_tokens_s_user_at_link": 0.5867523444176466
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "chunked",
+      "rank_resident_estimate_B": 4385415168,
+      "device_limit_tokens_s_user": 0.5874837240076353,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.02335765101932129,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 213.58698372,
+      "decode_tokens_s_user_at_link": 0.5871163938334866
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "overlap_bound",
+      "rank_resident_estimate_B": 4385415168,
+      "device_limit_tokens_s_user": 0.5874837240076353,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.007007295305796389,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 211.405929256,
+      "decode_tokens_s_user_at_link": 0.5874837240076353
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "serial_1us",
+      "rank_resident_estimate_B": 4385415168,
+      "device_limit_tokens_s_user": 0.5874837240076353,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.04656924730622848,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 215.751772588,
+      "decode_tokens_s_user_at_link": 0.5865706217666529
+    },
+    {
+      "microbatches": 4,
+      "dp": 1,
+      "tp": 2,
+      "pp": 2,
+      "network": "finite_host",
+      "rank_resident_estimate_B": 4385415168,
+      "device_limit_tokens_s_user": 0.5874837240076353,
+      "up_B_step": 16908352,
+      "down_B_step": 17039488,
+      "minimum_GB_s_for_70pct": 0.046602062684821415,
+      "predicted_fraction_at_min": 0.7,
+      "ttft_at_link_s": 216.78257473904,
+      "decode_tokens_s_user_at_link": 0.5863940606454578
+    }
+  ],
+  "factorial": [
+    {
+      "batch": 1,
+      "schedule": "naive",
+      "policy": "scaled",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 100380160,
+          "dram_read_bytes": 562036736,
+          "dram_write_bytes": 289406976,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 33489408,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 321862000,
+          "dram_read_bytes": 2345902080,
+          "dram_write_bytes": 73113600,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 121431504,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 43.270133773,
+      "decode_ms": 1123.212036490196,
+      "tokens_s_user": 0.890303849596192,
+      "decode_speedup": 0.9868888863820687,
+      "prefill_attention_cycles": 100380160,
+      "decode_attention_mean_cycles": 1262203.9215686275,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 10817634304,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 1,
+      "schedule": "naive",
+      "policy": "saturate",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 100380160,
+          "dram_read_bytes": 562036736,
+          "dram_write_bytes": 289406976,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 33489408,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 321862000,
+          "dram_read_bytes": 2345902080,
+          "dram_write_bytes": 73113600,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 121431504,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 43.270133773,
+      "decode_ms": 1123.212036490196,
+      "tokens_s_user": 0.890303849596192,
+      "decode_speedup": 0.9868888863820687,
+      "prefill_attention_cycles": 100380160,
+      "decode_attention_mean_cycles": 1262203.9215686275,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 10817634304,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 1,
+      "schedule": "naive",
+      "policy": "bounded",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 100380160,
+          "dram_read_bytes": 562036736,
+          "dram_write_bytes": 289406976,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 33489408,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 321862000,
+          "dram_read_bytes": 2345902080,
+          "dram_write_bytes": 73113600,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 121431504,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 43.270133773,
+      "decode_ms": 1123.212036490196,
+      "tokens_s_user": 0.890303849596192,
+      "decode_speedup": 0.9868888863820687,
+      "prefill_attention_cycles": 100380160,
+      "decode_attention_mean_cycles": 1262203.9215686275,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 10817634304,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 1,
+      "schedule": "naive",
+      "policy": "exact4",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 300428800,
+          "dram_read_bytes": 562036736,
+          "dram_write_bytes": 289406976,
+          "array16_compute_cycles": 68157440,
+          "array32_compute_cycles": 102236160,
+          "dma_busy_cycles": 33489408,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.22686719781858464,
+            "array32_compute_cycles": 0.34030079672787694,
+            "dma_busy_cycles": 0.11147202931276895
+          }
+        },
+        "decode": {
+          "cycles": 895955184,
+          "dram_read_bytes": 2345902080,
+          "dram_write_bytes": 73113600,
+          "array16_compute_cycles": 284590080,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 121431504,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3176387447522152,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.13553301121365016
+          }
+        }
+      },
+      "ttft_device_s": 152.644559245,
+      "decode_ms": 3869.339326717647,
+      "tokens_s_user": 0.25844205316784613,
+      "decode_speedup": 0.28647926228870474,
+      "prefill_attention_cycles": 300428800,
+      "decode_attention_mean_cycles": 3513549.7411764706,
+      "peak_layer_sram_B": 589824,
+      "prefill_layer_dram_B": 10817634304,
+      "prefill_attention_speedup": 0.22576967321375313,
+      "decode_attention_speedup": 0.228258872376813
+    },
+    {
+      "batch": 1,
+      "schedule": "naive",
+      "policy": "a16exact",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1169296896,
+          "dram_read_bytes": 562036736,
+          "dram_write_bytes": 289406976,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 33489408,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.23315700309530285,
+            "array32_compute_cycles": 0.3497355046429543,
+            "dma_busy_cycles": 0.028640637048265968
+          }
+        },
+        "decode": {
+          "cycles": 3043601904,
+          "dram_read_bytes": 2345902080,
+          "dram_write_bytes": 73113600,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 121431504,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.37401748188681644,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.03989730189102944
+          }
+        }
+      },
+      "ttft_device_s": 335.869879181,
+      "decode_ms": 7528.403134717647,
+      "tokens_s_user": 0.1328302937695306,
+      "decode_speedup": 0.14724045139810635,
+      "prefill_attention_cycles": 1169296896,
+      "decode_attention_mean_cycles": 11935693.741176471,
+      "peak_layer_sram_B": 786432,
+      "prefill_layer_dram_B": 10817634304,
+      "prefill_attention_speedup": 0.0580072625113682,
+      "decode_attention_speedup": 0.06719332108815766
+    },
+    {
+      "batch": 1,
+      "schedule": "naive",
+      "policy": "fixedshift",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 100380160,
+          "dram_read_bytes": 562036736,
+          "dram_write_bytes": 289406976,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 33489408,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 321862000,
+          "dram_read_bytes": 2345902080,
+          "dram_write_bytes": 73113600,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 121431504,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 43.270133773,
+      "decode_ms": 1123.212036490196,
+      "tokens_s_user": 0.890303849596192,
+      "decode_speedup": 0.9868888863820687,
+      "prefill_attention_cycles": 100380160,
+      "decode_attention_mean_cycles": 1262203.9215686275,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 10817634304,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 1,
+      "schedule": "rowblocked",
+      "policy": "scaled",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 275693568,
+          "dram_read_bytes": 2168455168,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 67436544,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65069056,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 278191856,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 48.880162829,
+      "decode_ms": 1117.731861556863,
+      "tokens_s_user": 0.8946689580872492,
+      "decode_speedup": 0.9917275457449708,
+      "prefill_attention_cycles": 275693568,
+      "decode_attention_mean_cycles": 1090948.4549019607,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 12151422976,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 1,
+      "schedule": "rowblocked",
+      "policy": "saturate",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 275693568,
+          "dram_read_bytes": 2168455168,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 67436544,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65069056,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 278191856,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 48.880162829,
+      "decode_ms": 1117.731861556863,
+      "tokens_s_user": 0.8946689580872492,
+      "decode_speedup": 0.9917275457449708,
+      "prefill_attention_cycles": 275693568,
+      "decode_attention_mean_cycles": 1090948.4549019607,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 12151422976,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 1,
+      "schedule": "rowblocked",
+      "policy": "bounded",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 275693568,
+          "dram_read_bytes": 2168455168,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 67436544,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65069056,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 278191856,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 48.880162829,
+      "decode_ms": 1117.731861556863,
+      "tokens_s_user": 0.8946689580872492,
+      "decode_speedup": 0.9917275457449708,
+      "prefill_attention_cycles": 275693568,
+      "decode_attention_mean_cycles": 1090948.4549019607,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 12151422976,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 1,
+      "schedule": "rowblocked",
+      "policy": "exact4",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 826249216,
+          "dram_read_bytes": 2168455168,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 269746176,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65069056,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.3264707194590548,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.07875233614745118
+          }
+        },
+        "decode": {
+          "cycles": 852285040,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 284590080,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.33391420316376785,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.07704511626767495
+          }
+        }
+      },
+      "ttft_device_s": 169.470812557,
+      "decode_ms": 3863.859151784314,
+      "tokens_s_user": 0.25880860577907044,
+      "decode_speedup": 0.2868855805343865,
+      "prefill_attention_cycles": 826249216,
+      "decode_attention_mean_cycles": 3342294.274509804,
+      "peak_layer_sram_B": 589824,
+      "prefill_layer_dram_B": 12151422976,
+      "prefill_attention_speedup": 0.08209110603258957,
+      "decode_attention_speedup": 0.23995460485848727
+    },
+    {
+      "batch": 1,
+      "schedule": "rowblocked",
+      "policy": "a16exact",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 2884286464,
+          "dram_read_bytes": 2168455168,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 1078984704,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65069056,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.3740906867148131,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.022559845151358723
+          }
+        },
+        "decode": {
+          "cycles": 2999931760,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.379462071497253,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.02188863122673164
+          }
+        }
+      },
+      "ttft_device_s": 390.749545357,
+      "decode_ms": 7522.922959784314,
+      "tokens_s_user": 0.13292705579277533,
+      "decode_speedup": 0.14734771069548822,
+      "prefill_attention_cycles": 2884286464,
+      "decode_attention_mean_cycles": 11764438.274509804,
+      "peak_layer_sram_B": 786432,
+      "prefill_layer_dram_B": 12151422976,
+      "prefill_attention_speedup": 0.02351628829056558,
+      "decode_attention_speedup": 0.06817145734008297
+    },
+    {
+      "batch": 1,
+      "schedule": "rowblocked",
+      "policy": "fixedshift",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 275693568,
+          "dram_read_bytes": 2168455168,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 67436544,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65069056,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 278191856,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 48.880162829,
+      "decode_ms": 1117.731861556863,
+      "tokens_s_user": 0.8946689580872492,
+      "decode_speedup": 0.9917275457449708,
+      "prefill_attention_cycles": 275693568,
+      "decode_attention_mean_cycles": 1090948.4549019607,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 12151422976,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 1,
+      "schedule": "flashattention",
+      "policy": "scaled",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 67827712,
+          "dram_read_bytes": 289406976,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 8649728,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 204509720,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 42.228455437,
+      "decode_ms": 1108.485475862745,
+      "tokens_s_user": 0.9021318021525634,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 67827712,
+      "decode_attention_mean_cycles": 801998.9019607843,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 10272374784,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    },
+    {
+      "batch": 1,
+      "schedule": "flashattention",
+      "policy": "saturate",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 67827712,
+          "dram_read_bytes": 289406976,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 8649728,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 204509720,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 42.228455437,
+      "decode_ms": 1108.485475862745,
+      "tokens_s_user": 0.9021318021525634,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 67827712,
+      "decode_attention_mean_cycles": 801998.9019607843,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 10272374784,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    },
+    {
+      "batch": 1,
+      "schedule": "flashattention",
+      "policy": "bounded",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 67827712,
+          "dram_read_bytes": 289406976,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 8649728,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 204509720,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 42.228455437,
+      "decode_ms": 1108.485475862745,
+      "tokens_s_user": 0.9021318021525634,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 67827712,
+      "decode_attention_mean_cycles": 801998.9019607843,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 10272374784,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    },
+    {
+      "batch": 1,
+      "schedule": "flashattention",
+      "policy": "exact4",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 267876352,
+          "dram_read_bytes": 289406976,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 68157440,
+          "array32_compute_cycles": 102236160,
+          "dma_busy_cycles": 8649728,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.25443619599538225,
+            "array32_compute_cycles": 0.3816542939930733,
+            "dma_busy_cycles": 0.03229000221714233
+          }
+        },
+        "decode": {
+          "cycles": 778602904,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 284590080,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.36551376643722355,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.08433618685809577
+          }
+        }
+      },
+      "ttft_device_s": 151.602880909,
+      "decode_ms": 3854.612766090196,
+      "tokens_s_user": 0.2594294318737283,
+      "decode_speedup": 0.2875737572433513,
+      "prefill_attention_cycles": 267876352,
+      "decode_attention_mean_cycles": 3053344.7215686273,
+      "peak_layer_sram_B": 590848,
+      "prefill_layer_dram_B": 10272374784,
+      "prefill_attention_speedup": 0.25320529973470746,
+      "decode_attention_speedup": 0.26266241616792124
+    },
+    {
+      "batch": 1,
+      "schedule": "flashattention",
+      "policy": "a16exact",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1136744448,
+          "dram_read_bytes": 289406976,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 8649728,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2398338170726654,
+            "array32_compute_cycles": 0.35975072560899807,
+            "dma_busy_cycles": 0.007609210685144248
+          }
+        },
+        "decode": {
+          "cycles": 2926249624,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3890168188877655,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.022439780756038467
+          }
+        }
+      },
+      "ttft_device_s": 334.828200845,
+      "decode_ms": 7513.676574090196,
+      "tokens_s_user": 0.13309063680600153,
+      "decode_speedup": 0.14752903787277635,
+      "prefill_attention_cycles": 1136744448,
+      "decode_attention_mean_cycles": 11475488.721568627,
+      "peak_layer_sram_B": 786432,
+      "prefill_layer_dram_B": 10272374784,
+      "prefill_attention_speedup": 0.059668390832554125,
+      "decode_attention_speedup": 0.06988799531068304
+    },
+    {
+      "batch": 1,
+      "schedule": "flashattention",
+      "policy": "fixedshift",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 67827712,
+          "dram_read_bytes": 289406976,
+          "dram_write_bytes": 16777216,
+          "array16_compute_cycles": 17039360,
+          "array32_compute_cycles": 25559040,
+          "dma_busy_cycles": 8649728,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 204509720,
+          "dram_read_bytes": 2274877440,
+          "dram_write_bytes": 2088960,
+          "array16_compute_cycles": 71147520,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 65664400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 42.228455437,
+      "decode_ms": 1108.485475862745,
+      "tokens_s_user": 0.9021318021525634,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 67827712,
+      "decode_attention_mean_cycles": 801998.9019607843,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 10272374784,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    },
+    {
+      "batch": 16,
+      "schedule": "naive",
+      "policy": "scaled",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1606082560,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 535830528,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 5149792000,
+          "dram_read_bytes": 37534433280,
+          "dram_write_bytes": 1169817600,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1942904064,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 686.916366652,
+      "decode_ms": 1761.8444038431373,
+      "tokens_s_user": 0.567587011553736,
+      "decode_speedup": 0.8662623274080029,
+      "prefill_attention_cycles": 1606082560,
+      "decode_attention_mean_cycles": 20195262.74509804,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 171991629824,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 16,
+      "schedule": "naive",
+      "policy": "saturate",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1606082560,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 535830528,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 5149792000,
+          "dram_read_bytes": 37534433280,
+          "dram_write_bytes": 1169817600,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1942904064,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 686.916366652,
+      "decode_ms": 1761.8444038431373,
+      "tokens_s_user": 0.567587011553736,
+      "decode_speedup": 0.8662623274080029,
+      "prefill_attention_cycles": 1606082560,
+      "decode_attention_mean_cycles": 20195262.74509804,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 171991629824,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 16,
+      "schedule": "naive",
+      "policy": "bounded",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1606082560,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 535830528,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 5149792000,
+          "dram_read_bytes": 37534433280,
+          "dram_write_bytes": 1169817600,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1942904064,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 686.916366652,
+      "decode_ms": 1761.8444038431373,
+      "tokens_s_user": 0.567587011553736,
+      "decode_speedup": 0.8662623274080029,
+      "prefill_attention_cycles": 1606082560,
+      "decode_attention_mean_cycles": 20195262.74509804,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 171991629824,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 16,
+      "schedule": "naive",
+      "policy": "exact4",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 4806860800,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "array16_compute_cycles": 1090519040,
+          "array32_compute_cycles": 1635778560,
+          "dma_busy_cycles": 535830528,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.22686719781858464,
+            "array32_compute_cycles": 0.34030079672787694,
+            "dma_busy_cycles": 0.11147202931276895
+          }
+        },
+        "decode": {
+          "cycles": 14335282944,
+          "dram_read_bytes": 37534433280,
+          "dram_write_bytes": 1169817600,
+          "array16_compute_cycles": 4553441280,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1942904064,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3176387447522152,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.13553301121365016
+          }
+        }
+      },
+      "ttft_device_s": 2422.176037564,
+      "decode_ms": 5588.617687482353,
+      "tokens_s_user": 0.1789351241971421,
+      "decode_speedup": 0.2730942639397966,
+      "prefill_attention_cycles": 4806860800,
+      "decode_attention_mean_cycles": 56216795.85882353,
+      "peak_layer_sram_B": 589824,
+      "prefill_layer_dram_B": 171991629824,
+      "prefill_attention_speedup": 0.22576967321375313,
+      "decode_attention_speedup": 0.228258872376813
+    },
+    {
+      "batch": 16,
+      "schedule": "naive",
+      "policy": "a16exact",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 18708750336,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "array16_compute_cycles": 4362076160,
+          "array32_compute_cycles": 6543114240,
+          "dma_busy_cycles": 535830528,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.23315700309530285,
+            "array32_compute_cycles": 0.3497355046429543,
+            "dma_busy_cycles": 0.028640637048265968
+          }
+        },
+        "decode": {
+          "cycles": 48697630464,
+          "dram_read_bytes": 37534433280,
+          "dram_write_bytes": 1169817600,
+          "array16_compute_cycles": 18213765120,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1942904064,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.37401748188681644,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.03989730189102944
+          }
+        }
+      },
+      "ttft_device_s": 5335.99418694,
+      "decode_ms": 13290.310615482353,
+      "tokens_s_user": 0.07524278618703348,
+      "decode_speedup": 0.11483700253220376,
+      "prefill_attention_cycles": 18708750336,
+      "decode_attention_mean_cycles": 190971099.85882354,
+      "peak_layer_sram_B": 786432,
+      "prefill_layer_dram_B": 171991629824,
+      "prefill_attention_speedup": 0.0580072625113682,
+      "decode_attention_speedup": 0.06719332108815766
+    },
+    {
+      "batch": 16,
+      "schedule": "naive",
+      "policy": "fixedshift",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1606082560,
+          "dram_read_bytes": 8992587776,
+          "dram_write_bytes": 4630511616,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 535830528,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.16974828492004795,
+            "array32_compute_cycles": 0.2546224273800719,
+            "dma_busy_cycles": 0.3336257682793094
+          }
+        },
+        "decode": {
+          "cycles": 5149792000,
+          "dram_read_bytes": 37534433280,
+          "dram_write_bytes": 1169817600,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1942904064,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.22104976667018786,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.37727816269084263
+          }
+        }
+      },
+      "ttft_device_s": 686.916366652,
+      "decode_ms": 1761.8444038431373,
+      "tokens_s_user": 0.567587011553736,
+      "decode_speedup": 0.8662623274080029,
+      "prefill_attention_cycles": 1606082560,
+      "decode_attention_mean_cycles": 20195262.74509804,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 171991629824,
+      "prefill_attention_speedup": 0.6757083471474842,
+      "decode_attention_speedup": 0.6353956664657524
+    },
+    {
+      "batch": 16,
+      "schedule": "rowblocked",
+      "policy": "scaled",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 4411097088,
+          "dram_read_bytes": 34695282688,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 1078984704,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1041104896,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 4451069696,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 776.676831548,
+      "decode_ms": 1674.1616049098038,
+      "tokens_s_user": 0.5973139015178139,
+      "decode_speedup": 0.9116320845777294,
+      "prefill_attention_cycles": 4411097088,
+      "decode_attention_mean_cycles": 17455175.27843137,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 193332248576,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 16,
+      "schedule": "rowblocked",
+      "policy": "saturate",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 4411097088,
+          "dram_read_bytes": 34695282688,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 1078984704,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1041104896,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 4451069696,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 776.676831548,
+      "decode_ms": 1674.1616049098038,
+      "tokens_s_user": 0.5973139015178139,
+      "decode_speedup": 0.9116320845777294,
+      "prefill_attention_cycles": 4411097088,
+      "decode_attention_mean_cycles": 17455175.27843137,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 193332248576,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 16,
+      "schedule": "rowblocked",
+      "policy": "bounded",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 4411097088,
+          "dram_read_bytes": 34695282688,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 1078984704,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1041104896,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 4451069696,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 776.676831548,
+      "decode_ms": 1674.1616049098038,
+      "tokens_s_user": 0.5973139015178139,
+      "decode_speedup": 0.9116320845777294,
+      "prefill_attention_cycles": 4411097088,
+      "decode_attention_mean_cycles": 17455175.27843137,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 193332248576,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 16,
+      "schedule": "rowblocked",
+      "policy": "exact4",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 13219987456,
+          "dram_read_bytes": 34695282688,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 4315938816,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1041104896,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.3264707194590548,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.07875233614745118
+          }
+        },
+        "decode": {
+          "cycles": 13636560640,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 4553441280,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.33391420316376785,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.07704511626767495
+          }
+        }
+      },
+      "ttft_device_s": 2691.396090556,
+      "decode_ms": 5500.93488854902,
+      "tokens_s_user": 0.1817872816640027,
+      "decode_speedup": 0.2774472820939882,
+      "prefill_attention_cycles": 13219987456,
+      "decode_attention_mean_cycles": 53476708.39215686,
+      "peak_layer_sram_B": 589824,
+      "prefill_layer_dram_B": 193332248576,
+      "prefill_attention_speedup": 0.08209110603258957,
+      "decode_attention_speedup": 0.23995460485848727
+    },
+    {
+      "batch": 16,
+      "schedule": "rowblocked",
+      "policy": "a16exact",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 46148583424,
+          "dram_read_bytes": 34695282688,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 17263755264,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1041104896,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.3740906867148131,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.022559845151358723
+          }
+        },
+        "decode": {
+          "cycles": 47998908160,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 18213765120,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.379462071497253,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.02188863122673164
+          }
+        }
+      },
+      "ttft_device_s": 6214.068845756,
+      "decode_ms": 13202.627816549018,
+      "tokens_s_user": 0.07574249716761204,
+      "decode_speedup": 0.11559967114204797,
+      "prefill_attention_cycles": 46148583424,
+      "decode_attention_mean_cycles": 188231012.39215687,
+      "peak_layer_sram_B": 786432,
+      "prefill_layer_dram_B": 193332248576,
+      "prefill_attention_speedup": 0.02351628829056558,
+      "decode_attention_speedup": 0.06817145734008297
+    },
+    {
+      "batch": 16,
+      "schedule": "rowblocked",
+      "policy": "fixedshift",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 4411097088,
+          "dram_read_bytes": 34695282688,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 1078984704,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1041104896,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2446068817971118,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23601949248232007
+          }
+        },
+        "decode": {
+          "cycles": 4451069696,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.2557498304335696,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.23603997954562697
+          }
+        }
+      },
+      "ttft_device_s": 776.676831548,
+      "decode_ms": 1674.1616049098038,
+      "tokens_s_user": 0.5973139015178139,
+      "decode_speedup": 0.9116320845777294,
+      "prefill_attention_cycles": 4411097088,
+      "decode_attention_mean_cycles": 17455175.27843137,
+      "peak_layer_sram_B": 327680,
+      "prefill_layer_dram_B": 193332248576,
+      "prefill_attention_speedup": 0.2460257324537945,
+      "decode_attention_speedup": 0.7351391336200727
+    },
+    {
+      "batch": 16,
+      "schedule": "flashattention",
+      "policy": "scaled",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1085243392,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 138395648,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 3272155520,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 670.249513276,
+      "decode_ms": 1526.2194338039214,
+      "tokens_s_user": 0.6552137771615306,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 1085243392,
+      "decode_attention_mean_cycles": 12831982.43137255,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 163267477504,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    },
+    {
+      "batch": 16,
+      "schedule": "flashattention",
+      "policy": "saturate",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1085243392,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 138395648,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 3272155520,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 670.249513276,
+      "decode_ms": 1526.2194338039214,
+      "tokens_s_user": 0.6552137771615306,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 1085243392,
+      "decode_attention_mean_cycles": 12831982.43137255,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 163267477504,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    },
+    {
+      "batch": 16,
+      "schedule": "flashattention",
+      "policy": "bounded",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1085243392,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 138395648,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 3272155520,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 670.249513276,
+      "decode_ms": 1526.2194338039214,
+      "tokens_s_user": 0.6552137771615306,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 1085243392,
+      "decode_attention_mean_cycles": 12831982.43137255,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 163267477504,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    },
+    {
+      "batch": 16,
+      "schedule": "flashattention",
+      "policy": "exact4",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 4286021632,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 1090519040,
+          "array32_compute_cycles": 1635778560,
+          "dma_busy_cycles": 138395648,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.25443619599538225,
+            "array32_compute_cycles": 0.3816542939930733,
+            "dma_busy_cycles": 0.03229000221714233
+          }
+        },
+        "decode": {
+          "cycles": 12457646464,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 4553441280,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.36551376643722355,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.08433618685809577
+          }
+        }
+      },
+      "ttft_device_s": 2405.509184188,
+      "decode_ms": 5352.992717443137,
+      "tokens_s_user": 0.1868113880935095,
+      "decode_speedup": 0.28511517096420075,
+      "prefill_attention_cycles": 4286021632,
+      "decode_attention_mean_cycles": 48853515.54509804,
+      "peak_layer_sram_B": 590848,
+      "prefill_layer_dram_B": 163267477504,
+      "prefill_attention_speedup": 0.25320529973470746,
+      "decode_attention_speedup": 0.26266241616792124
+    },
+    {
+      "batch": 16,
+      "schedule": "flashattention",
+      "policy": "a16exact",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 18187911168,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 4362076160,
+          "array32_compute_cycles": 6543114240,
+          "dma_busy_cycles": 138395648,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2398338170726654,
+            "array32_compute_cycles": 0.35975072560899807,
+            "dma_busy_cycles": 0.007609210685144248
+          }
+        },
+        "decode": {
+          "cycles": 46819993984,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 18213765120,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3890168188877655,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.022439780756038467
+          }
+        }
+      },
+      "ttft_device_s": 5319.327333564,
+      "decode_ms": 13054.685645443138,
+      "tokens_s_user": 0.07660084870362692,
+      "decode_speedup": 0.11690970393734933,
+      "prefill_attention_cycles": 18187911168,
+      "decode_attention_mean_cycles": 183607819.54509804,
+      "peak_layer_sram_B": 786432,
+      "prefill_layer_dram_B": 163267477504,
+      "prefill_attention_speedup": 0.059668390832554125,
+      "decode_attention_speedup": 0.06988799531068304
+    },
+    {
+      "batch": 16,
+      "schedule": "flashattention",
+      "policy": "fixedshift",
+      "attention_counters": {
+        "prefill": {
+          "cycles": 1085243392,
+          "dram_read_bytes": 4630511616,
+          "dram_write_bytes": 268435456,
+          "array16_compute_cycles": 272629760,
+          "array32_compute_cycles": 408944640,
+          "dma_busy_cycles": 138395648,
+          "steps": 1,
+          "utilization": {
+            "array16_compute_cycles": 0.2512153144720553,
+            "array32_compute_cycles": 0.376822971708083,
+            "dma_busy_cycles": 0.12752498565777953
+          }
+        },
+        "decode": {
+          "cycles": 3272155520,
+          "dram_read_bytes": 36398039040,
+          "dram_write_bytes": 33423360,
+          "array16_compute_cycles": 1138360320,
+          "array32_compute_cycles": 0,
+          "dma_busy_cycles": 1050630400,
+          "steps": 255,
+          "utilization": {
+            "array16_compute_cycles": 0.3478930976972635,
+            "array32_compute_cycles": 0.0,
+            "dma_busy_cycles": 0.3210820493030845
+          }
+        }
+      },
+      "ttft_device_s": 670.249513276,
+      "decode_ms": 1526.2194338039214,
+      "tokens_s_user": 0.6552137771615306,
+      "decode_speedup": 1.0,
+      "prefill_attention_cycles": 1085243392,
+      "decode_attention_mean_cycles": 12831982.43137255,
+      "peak_layer_sram_B": 459776,
+      "prefill_layer_dram_B": 163267477504,
+      "prefill_attention_speedup": 1.0,
+      "decode_attention_speedup": 1.0
+    }
+  ],
+  "ideal_four": {
+    "tokens_s_user": 21.21301807281258,
+    "tokens_s_batch": 339.4082891650013,
+    "GB_s_for_70pct_ideal_overlap": 0.4982573420801112,
+    "GB_s_for_70pct_serial": 3.321706110435311
+  },
+  "timing_source_sha256": "50d35cf049282d338976b199c9913ef030142bb9e655e8a4bb2f32aefad94581"
+}

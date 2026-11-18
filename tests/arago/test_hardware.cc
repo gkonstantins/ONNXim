@@ -144,6 +144,34 @@ void miscellaneous() {
   require(limited.gemm(Array::Large, 128) == 100 + 6144 + 128, "array ingress bandwidth ignored");
 }
 
+void transport_variants() {
+  HardwareConfig cfg;
+  cfg.queued_delivery = true;
+  Hardware device(cfg);
+  require(device.read(4096)==464 && device.read(2048)==696,"queued shared DMA");
+  require(device.gemm_repeat(Array::Large,128,1,696,0)==952,"prefetched command must wait for K");
+  for (bool queued : {false,true}) {
+    for (bool overlap : {false,true}) {
+      for (unsigned depth : {1u,128u,256u}) {
+        cfg.queued_delivery=queued; cfg.overlap_drain=overlap;
+        Hardware batched(cfg), single(cfg);
+        Cycle last=0;
+        for (int i=0;i<9;++i) last=single.gemm(Array::Large,depth,42);
+        require(batched.gemm_repeat(Array::Large,depth,9,42)==last,"queue/drain repeated replay");
+      }
+    }
+  }
+  cfg = HardwareConfig{};
+  cfg.duplex_dma=true;
+  Hardware duplex(cfg);
+  require(duplex.read(1024)==416 && duplex.write(1024)==366,"duplex dependency-free service");
+  require(duplex.finish()==416 && duplex.dma_busy_cycles()==416,"duplex utilization union");
+  for (unsigned slower : {32u,64u,128u}) {
+    cfg.sram_dma_rate=slower;
+    Hardware link(cfg);
+    require(link.read(4096)==400+4096/std::min(slower,64u),"series link bottleneck");
+  }
+}
 }  // namespace
 
 int main() {
@@ -153,6 +181,7 @@ int main() {
     same_array_readout_overlap();
     repeated_pipeline();
     miscellaneous();
+    transport_variants();
     std::cout << "all hardware checks passed\n";
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';

@@ -1,5 +1,7 @@
 # Arago inference exercise
 
+[Requirements coverage and open issues](docs/coverage.md) · [Architecture, accuracy and four-device comparison](docs/architecture-comparison.md)
+
 Start with one accelerator, one synchronous batch of 16 users, and materialized causal attention. Run streaming attention on the same requests as the first optimization. ONNXim supplies target cycles. PyTorch on the RTX 4060 supplies numerical results. The two programs currently execute independent implementations. The build commands, cold-tile test and existing measurements are in the [simulator guide](docs/arago.md).
 
 ## How to supply batch 16
@@ -156,15 +158,17 @@ Each row holds a running maximum m, an exponential sum l and a weighted value su
 
 For the baseline, each DMA, array and vector command incurs 200, 100 and 300 delivery cycles respectively; their resource rates and DRAM first-byte waits still apply. Prefetch overlaps useful computation only when the other slot is free and DMA can actually serve it. In the recorded 16-user prefill, DRAM payload for the attention phase falls from 12.6875 to 4.5625 GiB; attention takes 1.606 billion cycles materialized and 1.085 billion streaming. These results cover the chosen mapping and numerical policy. [Recorded timing](example/arago/results/layer-comparison.json)
 
-## Problems to resolve and improvements to test
+## Baseline observations and follow-up experiments
 
-| Problem observed | Next experiment |
+The [coverage audit](docs/coverage.md) records which of these experiments have run, their tests, and the remaining limitations.
+
+| Baseline observation | Experiment |
 |---|---|
 | Independent C++ and CUDA implementations can agree on math while the scheduled buffer is stale. | Replay the same commands and named SRAM slots in both programs for one cold score tile and two consecutive KV blocks. Check data, dependencies, and slot reuse. |
 | The current DMA and command posting policies can expose avoidable stalls. | Compare late posting with preposted descriptors and explicit dependencies. Give the two DMA links independent bandwidth knobs, then vary one parameter at a time to rank prefill and decode attention elasticity. |
 | The 32×16 array is idle in the current batch-16 decode mapping. | For a dense projection, try splitting output features across both arrays. Account for input packing, result layout and DMA contention. |
 | The scaled output depends on seeing the wide result before it crosses the 16-bit port. | Compare bounded input quantization with the four-product reference. Benchmark programmable pre-return shift/round as a proposed hardware change. Record clipping, numerical error and target cycles. |
-| Timing currently covers one decoder layer. Four independent simulator processes would miss contention on a shared host link. | Include all 32 layers, final normalization, vocabulary head, sampling and return for TTFT and all 255 cached steps. For four devices, model shard dependencies, host collectives and shared directional bandwidth, then solve for 70% of peak interactivity. |
+| The original comparison covers one decoder layer. The architecture study now adds model endpoints and a shared host cut. | Include all 32 layers, final normalization, vocabulary head, sampling and return for TTFT and all 255 cached steps. For four devices, model shard dependencies, host collectives and shared directional bandwidth, then solve for 70% of peak interactivity. |
 
 Two candidate hardware improvements are a queued DMA descriptor list to hide command delivery between transfers, and programmable array-output shifts before the INT16 return. Compare each independently with the fixed baseline and report its change in per-user decode rate.
 

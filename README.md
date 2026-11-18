@@ -1,3 +1,7 @@
+## Arago inference simulator
+
+[Build the focused target](docs/arago.md) · [Assignment coverage and open issues](docs/coverage.md) · [Architecture and accuracy comparisons](docs/architecture-comparison.md) · [Kernel pseudocode](ARAGO.md#flashattention-on-the-control-cpu)
+
 # ONNXim: A Fast, Cycle-level Multi-core NPU Simulator
 [![Docker Image CI](https://github.com/PSAL-POSTECH/ONNXim/actions/workflows/docker-image.yml/badge.svg)](https://github.com/PSAL-POSTECH/ONNXim/actions/workflows/docker-image.yml)
 

@@ -15,6 +15,13 @@ enum class Array { Small, Large };
 struct HardwareConfig {
   std::uint64_t scratchpad_bytes = 1ULL << 20;
   std::uint64_t dma_bytes_per_cycle = 64;
+  std::uint64_t sram_dma_rate = UINT64_MAX;
+  bool queued_delivery = false, duplex_dma = false, overlap_drain = true;
+  bool wavefront_fill = false, transpose_decode = false, double_buffer = true;
+  bool share_kv = true;
+  unsigned mac_percent = 100;
+  unsigned pipeline_stages = 1, tensor_shards = 1, query_tile = 32, key_tile = 128;
+  bool trace_panels = false, exact_digits = false, exact_a16 = false, model_endpoints = false;
   Cycle dma_setup = 200;
   Cycle dram_read_start = 200;
   Cycle dram_write_start = 150;
@@ -47,7 +54,8 @@ class Hardware {
   Cycle gemm(Array engine, unsigned k, Cycle ready = 0);
   // Independent equal-depth tiles with all operands ready at the indicated
   // cycle. Load/pack/accumulate/write commands and buffers remain explicit.
-  Cycle gemm_repeat(Array engine, unsigned k, std::uint64_t count, Cycle ready = 0);
+  Cycle gemm_repeat(Array engine, unsigned k, std::uint64_t count, Cycle ready = 0,
+                    Cycle posted = UINT64_MAX);
   // Sum of bytes transferred in the two directions on the shared SIMD port.
   Cycle vector(std::uint64_t port_bytes, Cycle ready = 0);
 
@@ -58,7 +66,7 @@ class Hardware {
   Cycle finish() const;
   std::uint64_t read_bytes() const { return read_bytes_; }
   std::uint64_t write_bytes() const { return write_bytes_; }
-  Cycle dma_busy_cycles() const { return dma_busy_; }
+  Cycle dma_busy_cycles() const;
   std::uint64_t read_descriptors() const { return reads_; }
   std::uint64_t write_descriptors() const { return writes_; }
   std::uint64_t vector_bytes() const { return vector_bytes_; }
@@ -69,6 +77,7 @@ class Hardware {
 
  private:
   struct Pipeline {
+    Cycle delivery_free = 0;
     Cycle core_free = 0;
     Cycle drain_free = 0;
     Cycle active = 0;
@@ -83,6 +92,9 @@ class Hardware {
   std::array<Pipeline, 2> pipelines_;
   Cycle dma_free_ = 0;
   Cycle dma_busy_ = 0;
+  Cycle write_free_ = 0, read_delivery_ = 0, write_delivery_ = 0;
+  std::vector<std::array<Cycle, 2>> dma_intervals_;
+  Cycle vector_delivery_ = 0;
   Cycle vector_free_ = 0;
   std::uint64_t read_bytes_ = 0;
   std::uint64_t write_bytes_ = 0;

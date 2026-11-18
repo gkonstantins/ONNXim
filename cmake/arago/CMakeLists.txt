@@ -49,3 +49,14 @@ add_test(NAME arago-language-integration COMMAND ${Python3_EXECUTABLE}
   ${PROJECT_SOURCE_DIR}/tools/arago/run_comparison.py --simulator $<TARGET_FILE:onnxim-arago>)
 add_test(NAME arago-batch16-flashattention COMMAND ${Python3_EXECUTABLE}
   ${PROJECT_SOURCE_DIR}/tools/arago/run_comparison.py --simulator $<TARGET_FILE:onnxim-arago> --workload batch16)
+add_test(NAME arago-architecture-contracts COMMAND ${Python3_EXECUTABLE}
+  ${PROJECT_SOURCE_DIR}/tests/arago/test_architecture.py $<TARGET_FILE:onnxim-arago>)
+set(ARAGO_TORCH_PYTHON "" CACHE FILEPATH "Python interpreter with PyTorch for the numerical contracts")
+if(ARAGO_TORCH_PYTHON)
+  add_test(NAME arago-precision-contracts COMMAND ${ARAGO_TORCH_PYTHON}
+    ${PROJECT_SOURCE_DIR}/tests/arago/test_precision.py cpu)
+endif()
+if(ARAGO_TORCH_PYTHON)
+  add_test(NAME arago-panel-replay COMMAND ${ARAGO_TORCH_PYTHON}
+    ${PROJECT_SOURCE_DIR}/tools/arago/replay_panels.py --simulator $<TARGET_FILE:onnxim-arago>)
+endif()

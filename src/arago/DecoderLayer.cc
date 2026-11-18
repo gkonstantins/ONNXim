@@ -10,7 +10,7 @@ namespace {
 using Count = std::uint64_t;
 constexpr unsigned hidden = 4096, head_dim = 128, kv_heads = 8, group = 4;
 constexpr unsigned kv_width = kv_heads * head_dim, ffn = 14336;
-constexpr unsigned q_block = 32, kv_block = 128;
+
 constexpr Count max_context = 131072;
 
 // Phase boundaries drain all pipes; independent batches/heads/slabs use the
@@ -56,7 +56,7 @@ RowTiles rows_for(Count rows) {
           groups + (tail > 16)};
 }
 
-Cycle panel_gemm(Hardware& h, Count rows, Count columns, unsigned depth,
+Cycle native_panel(Hardware& h, Count rows, Count columns, unsigned depth,
                  Cycle operands_ready) {
   const auto rt = rows_for(rows);
   const auto col_tiles = ceil_div(columns, 16);
@@ -69,6 +69,32 @@ Cycle panel_gemm(Hardware& h, Count rows, Count columns, unsigned depth,
                                       operands_ready));
   }
   return end;
+}
+
+// In exact4 mode hold two digits per input and one additional INT32
+// reconstruction buffer. The native partial slot is reused four times.
+Cycle panel_gemm(Hardware& h, Count rows, Count columns, unsigned depth,
+                 Cycle ready, const HardwareConfig& cfg, bool dense_weight = false) {
+  if (!cfg.exact_digits) return native_panel(h, rows, columns, depth, ready);
+  const Count padded = rows_for(rows).padded();
+  const Count cols = 16*ceil_div(columns,16);
+  const Count inputs = (padded+cols)*depth, outputs = padded*cols;
+  const Count left_digits = cfg.exact_a16 ? 4 : 2;
+  const Count right_digits = cfg.exact_a16 && !dense_weight ? 4 : 2;
+  // The transpose path exchanges operand digit counts for A16/W8.
+  const Count digit_space = (left_digits*padded + right_digits*cols)*depth;
+  const Count wide = cfg.exact_a16 ? 8 : 4;
+  const Count storage = dense_weight && cfg.transpose_decode && cfg.exact_a16
+      ? std::max(digit_space,(right_digits*padded+left_digits*cols)*depth) : digit_space;
+  const Count extra = storage + wide*outputs;
+  h.reserve(extra);
+  ready = h.vector(inputs + storage + (cfg.exact_a16 ? inputs : 0), ready);
+  for (unsigned part=0; part<left_digits*right_digits; ++part) {
+    ready = native_panel(h,rows,columns,depth,ready);
+    ready = h.vector((2 + wide + (part ? wide : 0))*outputs,ready);
+  }
+  h.release(extra);
+  return ready;
 }
 
 // Signed native INT8 panels, INT16 calibrated partial return, widening/scale
@@ -87,7 +113,19 @@ PhaseMetrics dense_slab(Count m, unsigned n, unsigned k, const HardwareConfig& c
     const auto a = h.read(2*m*depth, ready);
     const auto w = h.read(Count(n)*depth, ready);
     const auto packed = h.vector((2*m+padded)*depth, a);
-    const auto done = panel_gemm(h, m, n, depth, std::max(w, packed));
+    auto ready_inputs = std::max(w,packed);
+    Cycle done;
+    if (cfg.transpose_decode && m <= 16) {
+      // Transpose the two packed panels, compute Y^T, transpose partials back.
+      const Count transposed = (m+n)*depth;
+      h.reserve(transposed + 2*outputs);
+      ready_inputs = h.vector(2*transposed,ready_inputs);
+      done = panel_gemm(h,n,m,depth,ready_inputs,cfg,true);
+      done = h.vector(4*outputs,done);
+      h.release(transposed + 2*outputs);
+    } else {
+      done = panel_gemm(h,m,n,depth,ready_inputs,cfg,true);
+    }
     // Read native partial, and previous wide sum on subsequent passes.
     ready = h.vector(outputs * (offset == 0 ? 6 : 10), done);
   }
@@ -127,13 +165,13 @@ PhaseMetrics vector_rows(Count rows, unsigned width, VectorOp op, const Hardware
         break;
       case VectorOp::Rotary:
         // Q and K occupy distinct ranges. V bypasses RoPE.
-        read = write = 2*r*hidden;
-        second_input = second_output = 2*r*kv_width;
+        read = write = 2*r*hidden/cfg.tensor_shards;
+        second_input = second_output = 2*r*kv_width/cfg.tensor_shards;
         auxiliary = r*head_dim*2;
         port_bytes = 6*n;
         break;
       case VectorOp::CopyKV:
-        read = write = second_input = second_output = 2*r*kv_width;
+        read = write = second_input = second_output = 2*r*kv_width/cfg.tensor_shards;
         break;
       case VectorOp::Residual:
       case VectorOp::SwiGLU:
@@ -162,9 +200,10 @@ PhaseMetrics vector_rows(Count rows, unsigned width, VectorOp op, const Hardware
 // Q/K/V packing uses three SRAM bytes/actual lane (A16 read, INT8 write).
 // K/V are shared by the four GQA heads, flattened along the query row axis.
 PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algorithm,
-                             const HardwareConfig& cfg) {
+                             const HardwareConfig& cfg, unsigned first, std::vector<BlockEvent>* plan) {
   Hardware h(cfg);
-  const Count rows = group * q;
+  const auto kv_block = cfg.key_tile;
+  const Count rows = (cfg.share_kv ? group : 1) * q;
   const Count padded = rows_for(rows).padded();
   const Count qb = rows * head_dim;
   const unsigned max_keys = std::min(kv_block, prefix);
@@ -173,7 +212,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
   const Count value_scratch = padded * head_dim;
   const Count kv = Count(max_keys)*head_dim;
   const Count blocks = ceil_div(prefix, kv_block);
-  auto keys_at = [prefix](Count b) {
+  auto keys_at = [prefix,kv_block](Count b) {
     return std::min<Count>(kv_block, prefix - b*kv_block);
   };
 
@@ -186,7 +225,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
     for (Count b = 0; b < blocks; ++b) {
       const auto n = keys_at(b);
       auto packed = h.vector(3*n*head_dim, h.read(2*n*head_dim, done));
-      done = panel_gemm(h, rows, n, head_dim, packed);
+      done = panel_gemm(h, rows, n, head_dim, packed,cfg);
       done = h.write(2*rows*n, done);
     }
     h.release(qk_space);
@@ -216,16 +255,36 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       const auto v = h.read(2*n*head_dim, done);
       const auto p = h.read(2*rows*n, done);
       const auto packed = h.vector((2*rows+padded)*n + 3*n*head_dim, std::max(p,v));
-      done = panel_gemm(h, rows, head_dim, n, packed);
+      done = panel_gemm(h, rows, head_dim, n, packed,cfg);
       done = h.vector(value_scratch*(b == 0 ? 6 : 10), done);
     }
     done = h.vector(4*value_scratch+2*qb, done);
     h.write(2*qb, done);
     h.release(pv_space);
+  } else if (algorithm == AttentionSchedule::RowBlocked) {
+    // Keep all visible scores for a small query panel, normalize in place,
+    // then consume probability slices. One reusable K or V staging slot.
+    h.reserve(2*qb + padded*head_dim + 2*rows*prefix + 3*kv +
+              3*score_scratch + 6*value_scratch + 8*rows);
+    done = h.vector(2*qb+padded*head_dim,h.read(2*qb));
+    for (Count b=0;b<blocks;++b) {
+      const auto n=keys_at(b);
+      const auto packed=h.vector(3*n*head_dim,h.read(2*n*head_dim,done));
+      done=panel_gemm(h,rows,n,head_dim,packed,cfg);
+      done=h.vector(2*(padded+rows)*n,done);
+    }
+    done=h.vector(8*rows*prefix,done);
+    for (Count b=0;b<blocks;++b) {
+      const auto n=keys_at(b);
+      const auto packed=h.vector((2*rows+padded)*n+3*n*head_dim,h.read(2*n*head_dim,done));
+      done=panel_gemm(h,rows,head_dim,n,packed,cfg);
+      done=h.vector(value_scratch*(b ? 10 : 6),done);
+    }
+    h.write(2*qb,h.vector(4*value_scratch+2*qb,done));
   } else {
     // Double-buffered K/V: prefetch b+1 while processing b. The slot for
     // b+2 is only available after b's PV has drained and its update is done.
-    const Count allocation = 2*qb + padded*head_dim + 2*6*kv +
+    const Count allocation = 2*qb + padded*head_dim + (cfg.double_buffer ? 2 : 1)*6*kv +
                              7*score_scratch + 6*value_scratch + 8*rows;
     h.reserve(allocation);
     const auto query_ready = h.vector(2*qb+padded*head_dim, h.read(2*qb));
@@ -234,19 +293,24 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       h.read(bytes, slot_free);
       return h.read(bytes, slot_free);
     };
-    Cycle ready = load(0, 0);
+    Cycle ready = load(0, 0), slot_ready = 0;
     for (Count b = 0; b < blocks; ++b) {
       const auto n = keys_at(b);
-      Cycle next = b+1 < blocks ? load(b+1, done) : 0;
+      const Cycle prior_done = done;
+      Cycle next = cfg.double_buffer && b+1 < blocks ? load(b+1, done) : 0;
       const auto packed = h.vector(6*n*head_dim, ready);
-      const auto scores = panel_gemm(h, rows, n, head_dim, std::max({packed, query_ready, done}));
+      const auto scores = panel_gemm(h, rows, n, head_dim, std::max({packed, query_ready, done}),cfg);
       // SIMD reads logits and builds normalized-to-local-max INT8 weights;
       // FP32 temporaries allow two passes over exp values. m/l are FP32.
       const auto weights = h.vector((2*rows + 8*rows + padded)*n + 16*rows, scores);
-      const auto values = panel_gemm(h, rows, head_dim, n, weights);
+      const auto values = panel_gemm(h, rows, head_dim, n, weights,cfg);
       // Fused rescale of old numerator and addition of new widened partial.
       done = h.vector(value_scratch*(b == 0 ? 6 : 10), values);
-      ready = next;
+      if (plan) plan->push_back({first,q,static_cast<unsigned>(b*kv_block),
+          static_cast<unsigned>(n),static_cast<unsigned>(cfg.double_buffer ? b%2 : 0),
+          slot_ready,ready,scores,values,done});
+      slot_ready = cfg.double_buffer ? prior_done : done;
+      ready = !cfg.double_buffer && b+1 < blocks ? load(b+1,done) : next;
     }
     done = h.vector(4*value_scratch+4*rows+2*qb, done);
     h.write(2*qb, done);
@@ -263,12 +327,17 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
       shape.context > max_context || shape.batch > 65535) {
     throw std::invalid_argument("invalid Llama batch, query length or visible context");
   }
+  const auto tp = config.tensor_shards;
+  if ((tp != 1 && tp != 2 && tp != 4) || !config.query_tile || !config.key_tile ||
+      config.query_tile > 256 || config.key_tile > 256)
+    throw std::invalid_argument("invalid mapping configuration");
+  const auto q_block = schedule == AttentionSchedule::RowBlocked ? std::min(4u,config.query_tile) : config.query_tile;
   const Count m = Count(shape.batch)*shape.queries;
   LayerMetrics out;
   append(out.layer, vector_rows(m, hidden, VectorOp::Norm, config));
-  dense(out.layer, m, hidden+2*kv_width, hidden, config); // fused Q/K/V
-  append(out.layer, vector_rows(m, hidden+kv_width, VectorOp::Rotary, config));
-  append(out.layer, vector_rows(m, 2*kv_width, VectorOp::CopyKV, config));
+  dense(out.layer, m, (hidden+2*kv_width)/tp, hidden, config); // fused Q/K/V
+  append(out.layer, vector_rows(m, (hidden+kv_width)/tp, VectorOp::Rotary, config));
+  append(out.layer, vector_rows(m, 2*kv_width/tp, VectorOp::CopyKV, config));
 
   const unsigned past = shape.context - shape.queries;
   for (unsigned first = 0; first < shape.queries; first += q_block) {
@@ -276,18 +345,44 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
     // No command for fully future KV blocks; each issued rectangle includes
     // masked elements for early query rows. Identical completed GQA groups
     // are replayed exactly; distinct requests own distinct caches.
-    append(out.attention, attention_group(q, past+first+q, schedule, config),
-           Count(shape.batch)*kv_heads);
+    append(out.attention, attention_group(q, past+first+q, schedule, config,first,
+           config.trace_panels ? &out.tile_plan : nullptr),
+           Count(shape.batch)*kv_heads/tp*(config.share_kv ? 1 : group));
   }
   append(out.layer, out.attention);
-  dense(out.layer, m, hidden, hidden, config); // attention output projection
+  dense(out.layer, m, hidden, hidden/tp, config); // attention output projection
   append(out.layer, vector_rows(m, hidden, VectorOp::Residual, config));
   append(out.layer, vector_rows(m, hidden, VectorOp::Norm, config));
-  dense(out.layer, m, 2*ffn, hidden, config); // fused gate and up
-  append(out.layer, vector_rows(m, ffn, VectorOp::SwiGLU, config));
-  dense(out.layer, m, hidden, ffn, config); // down
+  dense(out.layer, m, 2*ffn/tp, hidden, config); // fused gate and up
+  append(out.layer, vector_rows(m, ffn/tp, VectorOp::SwiGLU, config));
+  dense(out.layer, m, hidden, ffn/tp, config); // down
   append(out.layer, vector_rows(m, hidden, VectorOp::Residual, config));
   return out;
+}
+
+// Replicated embedding and vocabulary head; only last-position logits are needed.
+PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& cfg, Cycle& embedding) {
+  PhaseMetrics result;
+  Hardware embed(cfg);
+  embed.reserve(3*hidden);
+  auto t = embed.read(hidden);  // W8 embedding row
+  t = embed.vector(3*hidden,t);
+  embed.write(2*hidden,t);
+  append(result,metrics(embed),Count(shape.batch)*shape.queries);
+  embedding = result.cycles;
+  append(result,vector_rows(shape.batch,hidden,VectorOp::Norm,cfg));
+  dense(result,shape.batch,128256,hidden,cfg);
+  // Greedy argmax over A16 logits in SRAM-sized chunks, one INT32 id per user.
+  Hardware argmax(cfg);
+  argmax.reserve(2*16384+16);
+  t = 0;
+  for (unsigned offset=0; offset<128256; offset+=16384) {
+    const Count bytes = 2*std::min(16384u,128256-offset);
+    t = argmax.vector(bytes+16,argmax.read(bytes,t));
+  }
+  argmax.write(4,t);
+  append(result,metrics(argmax),shape.batch);
+  return result;
 }
 
 }  // namespace arago

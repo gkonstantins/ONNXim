@@ -52,12 +52,12 @@ class Errors:
         return result
 
 
-def pack_int8(x, dim):
+def pack_int8(x, dim, limit=127):
     # Real, positive scales are external calibration metadata. A zero vector can
     # use an arbitrary nonzero scale because every quantized value remains zero.
     maximum = x.abs().amax(dim=dim, keepdim=True)
-    step = torch.where(maximum > 0, maximum / 127, 1.0)
-    return (x / step).round().clamp(-127, 127), step
+    step = torch.where(maximum > 0, maximum / limit, 1.0)
+    return (x / step).round().clamp(-limit, limit), step
 
 
 def scale_native_tiles(dot, tile_rows):
@@ -112,6 +112,45 @@ def native_result(dot):
     return torch.cat(out, dim=1)
 
 
+def a16_wide_dot(left, right):
+    # Four balanced base-16 digits per signed A16 operand. Individual
+    # native dots fit INT16; the reconstructed dot may exceed INT32.
+    def digits(x):
+        parts = []
+        for _ in range(3):
+            high = torch.floor((x+8)/16)
+            parts.append(x-16*high)
+            x = high
+        return parts+[x]
+    left_parts, right_parts = digits(left), digits(right)
+    result = 0
+    for i,a in enumerate(left_parts):
+        for j,b in enumerate(right_parts):
+            result = result + (a @ b).to(torch.int16).double() * 16**(i+j)
+    return result
+
+
+def native_dot(left, right, policy):
+    if policy == "a16exact":
+        return a16_wide_dot(left,right).float()
+    if policy == "exact4":
+        # FP32 tensor operations are integer exact here with TF32 disabled.
+        ah = torch.floor((left + 8) / 16)
+        bh = torch.floor((right + 8) / 16)
+        al, bl = left - 16*ah, right - 16*bh
+        def partial(a, b):
+            return (a @ b).to(torch.int16).float()
+        return 256*partial(ah,bh) + 16*(partial(ah,bl)+partial(al,bh)) + partial(al,bl)
+    dot = left @ right
+    if policy == "fixedshift":
+        shift = max(0, math.ceil(math.log2(left.shape[-1]*127**2/32767)))
+        scale = 2**shift
+        return (dot/scale).round().clamp(-32768,32767)*scale
+    if policy == "scaled":
+        return native_result(dot)
+    return dot.clamp(-32768,32767)
+
+
 def normalize(scores, visible):
     masked = scores.masked_fill(~visible, -torch.inf)
     # Prevent 0/0 for an all-masked query. Such a row contributes a zero vector.
@@ -124,22 +163,25 @@ def exponent_delta(src, dest):
     return torch.exp(src - torch.where(torch.isfinite(dest), dest, 0.0))
 
 
-def run_group(q, k, v, positions, errors):
+def run_group(q, k, v, positions, errors, policy="scaled"):
     """q=[four query heads, Q,128]; one shared k/v=[K,128] per KV group."""
     key_positions = torch.arange(k.shape[0], device=k.device)
     visible = positions[:, None] >= key_positions
     reference = normalize(q @ k.T / math.sqrt(WIDTH), visible) @ v
-    qi, qs = pack_int8(q, -1)
-    ki, ks = pack_int8(k, -1)
-    vi, vs = pack_int8(v, (0, 1))
+    limit = 11 if policy == "bounded" else 127  # safe at any native K <= 256
+    if policy == "a16exact":
+        limit = 32767
+    qi, qs = pack_int8(q, -1, limit)
+    ki, ks = pack_int8(k, -1, limit)
+    vi, vs = pack_int8(v, (0, 1), limit)
 
     def scores(first, last):
-        return (native_result(qi @ ki[first:last].T) * qs *
+        return (native_dot(qi, ki[first:last].T, policy) * qs *
                 ks[first:last].T / math.sqrt(WIDTH))
 
     def weighted_native(weights, first, last):
-        pi, ps = pack_int8(weights, -1)
-        return native_result(pi @ vi[first:last]) * ps * vs
+        pi, ps = pack_int8(weights, -1, limit)
+        return native_dot(pi, vi[first:last], policy) * ps * vs
 
     # The materialized schedule spills scores and normalized probabilities in
     # a selected A16 format. Score/PV matrix multiplies use the native policy.
@@ -249,7 +291,8 @@ class CheckpointLayer:
         return x + self.layer.mlp(self.layer.post_attention_layernorm(x))
 
 
-def check_limits(records):
+def check_limits(records, report_accuracy=False):
+    failures = []
     # Relative RMS are engineering diagnostics for this checkpoint/data, not
     # downstream task-accuracy guarantees. Float online equivalence has a
     # tighter independent bound than the deliberately quantized schedules.
@@ -263,7 +306,11 @@ def check_limits(records):
             if not all(math.isfinite(stats[x]) for x in ("max_abs", "rms", "relative_rms")):
                 raise AssertionError(f"{phase} {name}: non-finite output")
             if stats["relative_rms"] > limit:
-                raise AssertionError(f"{phase} {name}: relative RMS {stats['relative_rms']:.5g} > {limit}")
+                message = f"{phase} {name}: relative RMS {stats['relative_rms']:.5g} > {limit}"
+                if not report_accuracy or name.startswith("float_online"):
+                    raise AssertionError(message)
+                failures.append(message)
+    return "; ".join(failures) if failures else "PASS"
 
 
 def main():
@@ -277,6 +324,9 @@ def main():
     p.add_argument("--prompt", type=int, default=2048)
     p.add_argument("--context", type=int, default=2176, help="visible KV positions including current decode token")
     p.add_argument("--json", type=Path)
+    p.add_argument("--precision-policy", choices=("scaled","fixedshift","saturate","bounded","exact4","a16exact"), default="scaled")
+    p.add_argument("--report-accuracy", action="store_true",
+                   help="record native accuracy threshold failures for design comparisons")
     args = p.parse_args()
     if min(args.batch, args.prompt, args.context) <= 0 or args.context < args.prompt:
         p.error("require batch > 0 and context >= prompt > 0")
@@ -310,7 +360,7 @@ def main():
                 outputs = [[], [], []]
                 for g in range(KV_HEADS):
                     group_outputs = run_group(q[g*4:g*4+4, first:end].float(), k[g, :end].float(),
-                                              v[g, :end].float(), pos, records[phase])
+                                              v[g, :end].float(), pos, records[phase], args.precision_policy)
                     for out, chunk in zip(outputs, group_outputs):
                         out.append(chunk)
                 if layer:
@@ -323,11 +373,11 @@ def main():
                 end = min(args.context, KEY_TILE + 1)
                 query = q[:4, :1].expand(-1, 3, -1).float()
                 for output in run_group(query, k[0, :end].float(), v[0, :end].float(),
-                                        pos, records["mask_edge"]):
+                                        pos, records["mask_edge"], args.precision_policy):
                     if output[:, 0].count_nonzero().item():
                         raise AssertionError("fully masked row should be exactly zero")
     results = {phase: data.report() for phase, data in records.items()}
-    check_limits(results)
+    quality = check_limits(results,args.report_accuracy)
     report = {"source": args.checkpoint.resolve().name if layer else "seeded synthetic BF16 Q/K/V",
               "torch": torch.__version__, "device": torch.cuda.get_device_name() if device.type == "cuda" else "cpu",
               "batch": args.batch, "prompt": args.prompt, "visible_decode_context": args.context,
@@ -339,6 +389,14 @@ def main():
               "relative_rms_limits": {"float_vs_float": 3e-5, "native_vs_reference": 0.10,
                                       "native_online_vs_native_materialized": 0.02},
               "errors": results, "result": "PASS"}
+    report["precision_policy"] = args.precision_policy
+    report["result"] = quality
+    if args.precision_policy != "scaled":
+        report["native_policy"] = {"fixedshift":"safe shift by reduction depth before nearest-even narrowing",
+                                  "a16exact":"signed A16 with 16 radix-16 products for attention",
+                                  "exact4":"four balanced radix-16 integer products and wide reconstruction",
+                                  "bounded":"symmetric input limit 11 and signed INT16 return",
+                                  "saturate":"symmetric input limit 127 and saturating INT16 return"}[args.precision_policy]
     if args.prompts_file:
         report["input_kind"] = "user-supplied text rows (teacher-forced)"
     if device.type == "cuda":

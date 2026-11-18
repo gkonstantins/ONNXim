@@ -1,0 +1,137 @@
+{
+  "source": "70d37f62f4f475a5a42dbbd5b7aad38f420e0960",
+  "torch": "2.8.0+cu128",
+  "device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "batch": 1,
+  "prompt": 2048,
+  "visible_decode_context": 2176,
+  "kv_groups": 8,
+  "query_heads": 32,
+  "head_dim": 128,
+  "key_tile": 128,
+  "native_policy": "symmetric input limit 127 and saturating INT16 return",
+  "relative_rms_limits": {
+    "float_vs_float": 3e-05,
+    "native_vs_reference": 0.1,
+    "native_online_vs_native_materialized": 0.02
+  },
+  "errors": {
+    "prefill": {
+      "float_online_vs_float_dense": {
+        "elements": 8388608,
+        "max_abs": 1.1920928955078125e-07,
+        "rms": 1.8245281099072292e-09,
+        "relative_rms": 1.7661341255785408e-07
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 8388608,
+        "max_abs": 0.38294947147369385,
+        "rms": 0.00655171732098562,
+        "relative_rms": 0.6342029743967647
+      },
+      "native_online_vs_float_dense": {
+        "elements": 8388608,
+        "max_abs": 0.3829704821109772,
+        "rms": 0.0065516359791505975,
+        "relative_rms": 0.6341951005476367
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 8388608,
+        "max_abs": 0.0020510517060756683,
+        "rms": 1.92947332568485e-05,
+        "relative_rms": 0.002054160329282602
+      },
+      "layer_native_materialized_vs_reference": {
+        "elements": 8388608,
+        "max_abs": 4.5380859375,
+        "rms": 0.00858163546221644,
+        "relative_rms": 0.47137998051730495
+      },
+      "layer_native_online_vs_reference": {
+        "elements": 8388608,
+        "max_abs": 4.5380859375,
+        "rms": 0.008580671628063969,
+        "relative_rms": 0.4713270381468193
+      },
+      "layer_native_online_vs_native_materialized": {
+        "elements": 8388608,
+        "max_abs": 0.0078125,
+        "rms": 7.585073315245423e-05,
+        "relative_rms": 0.003987439793749584
+      }
+    },
+    "decode": {
+      "float_online_vs_float_dense": {
+        "elements": 4096,
+        "max_abs": 7.450580596923828e-08,
+        "rms": 3.522545398288168e-09,
+        "relative_rms": 3.996648584067143e-07
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 4096,
+        "max_abs": 0.18737749755382538,
+        "rms": 0.0067959224441161625,
+        "relative_rms": 0.7710592978278213
+      },
+      "native_online_vs_float_dense": {
+        "elements": 4096,
+        "max_abs": 0.18738922476768494,
+        "rms": 0.006797400749108935,
+        "relative_rms": 0.7712270249934969
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 4096,
+        "max_abs": 0.0005160998553037643,
+        "rms": 2.266170228539102e-05,
+        "relative_rms": 0.0026806081355898173
+      },
+      "layer_native_materialized_vs_reference": {
+        "elements": 4096,
+        "max_abs": 0.0751953125,
+        "rms": 0.009438252452739111,
+        "relative_rms": 0.6726904705988742
+      },
+      "layer_native_online_vs_reference": {
+        "elements": 4096,
+        "max_abs": 0.0751953125,
+        "rms": 0.00943062345933159,
+        "relative_rms": 0.6721467310463246
+      },
+      "layer_native_online_vs_native_materialized": {
+        "elements": 4096,
+        "max_abs": 0.0009765625,
+        "rms": 7.508195347835583e-05,
+        "relative_rms": 0.004630575491611218
+      }
+    },
+    "mask_edge": {
+      "float_online_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 7.450580596923828e-09,
+        "rms": 5.298244553950604e-10,
+        "relative_rms": 5.33573897892798e-08
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 0.05898164585232735,
+        "rms": 0.005898894503274213,
+        "relative_rms": 0.594063958603706
+      },
+      "native_online_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 0.05926221236586571,
+        "rms": 0.0059131665993170605,
+        "relative_rms": 0.5955012682331765
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 1536,
+        "max_abs": 0.0007924512028694153,
+        "rms": 5.033415410922824e-05,
+        "relative_rms": 0.00409974416155665
+      }
+    }
+  },
+  "result": "prefill native_materialized_vs_float_dense: relative RMS 0.6342 > 0.1; prefill native_online_vs_float_dense: relative RMS 0.6342 > 0.1; prefill layer_native_materialized_vs_reference: relative RMS 0.47138 > 0.1; prefill layer_native_online_vs_reference: relative RMS 0.47133 > 0.1; decode native_materialized_vs_float_dense: relative RMS 0.77106 > 0.1; decode native_online_vs_float_dense: relative RMS 0.77123 > 0.1; decode layer_native_materialized_vs_reference: relative RMS 0.67269 > 0.1; decode layer_native_online_vs_reference: relative RMS 0.67215 > 0.1; mask_edge native_materialized_vs_float_dense: relative RMS 0.59406 > 0.1; mask_edge native_online_vs_float_dense: relative RMS 0.5955 > 0.1",
+  "precision_policy": "saturate",
+  "peak_torch_allocated_mib_including_checkpoint_load": 5438.7890625
+}

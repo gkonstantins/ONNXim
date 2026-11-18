@@ -1,0 +1,137 @@
+{
+  "source": "70d37f62f4f475a5a42dbbd5b7aad38f420e0960",
+  "torch": "2.8.0+cu128",
+  "device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "batch": 1,
+  "prompt": 2048,
+  "visible_decode_context": 2176,
+  "kv_groups": 8,
+  "query_heads": 32,
+  "head_dim": 128,
+  "key_tile": 128,
+  "native_policy": "Q/K signed int8 per row; V signed int8 per KV group; PV weights packed per row per key block. Each 48-row group uses 16x16 and 32x16 output tiles with independent INT16 power-of-two scales. Naive spills FP16 scores and probabilities; online keeps running statistics and accumulator FP32.",
+  "relative_rms_limits": {
+    "float_vs_float": 3e-05,
+    "native_vs_reference": 0.1,
+    "native_online_vs_native_materialized": 0.02
+  },
+  "errors": {
+    "prefill": {
+      "float_online_vs_float_dense": {
+        "elements": 8388608,
+        "max_abs": 1.1920928955078125e-07,
+        "rms": 1.8245281099072292e-09,
+        "relative_rms": 1.7661341255785408e-07
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 8388608,
+        "max_abs": 0.01852167397737503,
+        "rms": 0.0005408297203253631,
+        "relative_rms": 0.05235204763396544
+      },
+      "native_online_vs_float_dense": {
+        "elements": 8388608,
+        "max_abs": 0.01863793283700943,
+        "rms": 0.0005407258000175658,
+        "relative_rms": 0.052341988199915354
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 8388608,
+        "max_abs": 0.002083856612443924,
+        "rms": 2.4335389757569935e-05,
+        "relative_rms": 0.002355901509228274
+      },
+      "layer_native_materialized_vs_reference": {
+        "elements": 8388608,
+        "max_abs": 0.015625,
+        "rms": 0.0003226548060821575,
+        "relative_rms": 0.017723080510057002
+      },
+      "layer_native_online_vs_reference": {
+        "elements": 8388608,
+        "max_abs": 0.015625,
+        "rms": 0.0003223816904171958,
+        "relative_rms": 0.017708078561139987
+      },
+      "layer_native_online_vs_native_materialized": {
+        "elements": 8388608,
+        "max_abs": 0.00390625,
+        "rms": 7.734212019643121e-05,
+        "relative_rms": 0.004246629921394166
+      }
+    },
+    "decode": {
+      "float_online_vs_float_dense": {
+        "elements": 4096,
+        "max_abs": 7.450580596923828e-08,
+        "rms": 3.522545398288168e-09,
+        "relative_rms": 3.996648584067143e-07
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 4096,
+        "max_abs": 0.003707997500896454,
+        "rms": 0.0004999184206986749,
+        "relative_rms": 0.05672029803236596
+      },
+      "native_online_vs_float_dense": {
+        "elements": 4096,
+        "max_abs": 0.0037201829254627228,
+        "rms": 0.0005008790363317635,
+        "relative_rms": 0.05682928862512546
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 4096,
+        "max_abs": 0.000510089099407196,
+        "rms": 2.5464862684243142e-05,
+        "relative_rms": 0.0028944022096017074
+      },
+      "layer_native_materialized_vs_reference": {
+        "elements": 4096,
+        "max_abs": 0.0029296875,
+        "rms": 0.00022644250043537658,
+        "relative_rms": 0.016139186035149144
+      },
+      "layer_native_online_vs_reference": {
+        "elements": 4096,
+        "max_abs": 0.001953125,
+        "rms": 0.0002290445893864998,
+        "relative_rms": 0.016324644142975367
+      },
+      "layer_native_online_vs_native_materialized": {
+        "elements": 4096,
+        "max_abs": 0.0009765625,
+        "rms": 5.309350857175198e-05,
+        "relative_rms": 0.003780042776099612
+      }
+    },
+    "mask_edge": {
+      "float_online_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 7.450580596923828e-09,
+        "rms": 5.298244553950604e-10,
+        "relative_rms": 5.33573897892798e-08
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 0.0018247230909764767,
+        "rms": 0.0006448338220908489,
+        "relative_rms": 0.06493971587052813
+      },
+      "native_online_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 0.0018239738419651985,
+        "rms": 0.0006449140864351506,
+        "relative_rms": 0.06494779910613849
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 1536,
+        "max_abs": 0.0005128234624862671,
+        "rms": 3.612928181717346e-05,
+        "relative_rms": 0.0036444552020956475
+      }
+    }
+  },
+  "result": "PASS",
+  "precision_policy": "scaled",
+  "peak_torch_allocated_mib_including_checkpoint_load": 5438.7890625
+}

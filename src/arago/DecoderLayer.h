@@ -4,7 +4,7 @@
 
 namespace arago {
 
-enum class AttentionSchedule { Naive, Streaming };
+enum class AttentionSchedule { Naive, Streaming, RowBlocked };
 
 // Queries are the last 'queries' positions of a context that includes them.
 struct LayerShape {
@@ -25,7 +25,13 @@ struct PhaseMetrics {
   Cycle dma_busy_cycles = 0; // descriptor setup, first byte and payload
 };
 
+struct BlockEvent {
+  unsigned query_offset, queries, key_offset, keys, slot;
+  Cycle load_ready, loaded, scores_ready, values_ready, released;
+};
+
 struct LayerMetrics {
+  std::vector<BlockEvent> tile_plan; // one representative user/KV group per query panel
   PhaseMetrics layer;
   PhaseMetrics attention;
 };
@@ -35,5 +41,7 @@ struct LayerMetrics {
 // completed slab can therefore be replayed by multiplying its counters.
 LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedule,
                                const HardwareConfig& config = {});
+
+PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& config, Cycle& embedding);
 
 }  // namespace arago

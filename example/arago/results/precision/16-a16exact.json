@@ -1,0 +1,137 @@
+{
+  "source": "70d37f62f4f475a5a42dbbd5b7aad38f420e0960",
+  "torch": "2.8.0+cu128",
+  "device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "batch": 16,
+  "prompt": 2048,
+  "visible_decode_context": 2176,
+  "kv_groups": 8,
+  "query_heads": 32,
+  "head_dim": 128,
+  "key_tile": 128,
+  "native_policy": "signed A16 with 16 radix-16 products for attention",
+  "relative_rms_limits": {
+    "float_vs_float": 3e-05,
+    "native_vs_reference": 0.1,
+    "native_online_vs_native_materialized": 0.02
+  },
+  "errors": {
+    "prefill": {
+      "float_online_vs_float_dense": {
+        "elements": 134217728,
+        "max_abs": 1.9371509552001953e-07,
+        "rms": 1.8104921950259974e-09,
+        "relative_rms": 1.7913559132930192e-07
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 134217728,
+        "max_abs": 0.0005326718091964722,
+        "rms": 7.403861076255798e-06,
+        "relative_rms": 0.0007325604803262018
+      },
+      "native_online_vs_float_dense": {
+        "elements": 134217728,
+        "max_abs": 0.00022487249225378036,
+        "rms": 2.401072851607454e-06,
+        "relative_rms": 0.0002375694334828426
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 134217728,
+        "max_abs": 0.0005350708961486816,
+        "rms": 7.02265309414823e-06,
+        "relative_rms": 0.0006948446229081421
+      },
+      "layer_native_materialized_vs_reference": {
+        "elements": 134217728,
+        "max_abs": 0.0029296875,
+        "rms": 6.4089985081953e-05,
+        "relative_rms": 0.0035678636611013257
+      },
+      "layer_native_online_vs_reference": {
+        "elements": 134217728,
+        "max_abs": 0.0029296875,
+        "rms": 5.466812919515866e-05,
+        "relative_rms": 0.003043352737972823
+      },
+      "layer_native_online_vs_native_materialized": {
+        "elements": 134217728,
+        "max_abs": 0.0029296875,
+        "rms": 6.368103915963145e-05,
+        "relative_rms": 0.003545094384603756
+      }
+    },
+    "decode": {
+      "float_online_vs_float_dense": {
+        "elements": 65536,
+        "max_abs": 7.450580596923828e-08,
+        "rms": 2.446023713683245e-09,
+        "relative_rms": 2.4424303836738464e-07
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 65536,
+        "max_abs": 0.0001589059829711914,
+        "rms": 6.145421638957907e-06,
+        "relative_rms": 0.0006136393710131155
+      },
+      "native_online_vs_float_dense": {
+        "elements": 65536,
+        "max_abs": 5.655316635966301e-05,
+        "rms": 2.0245869734596515e-06,
+        "relative_rms": 0.00020216127548992695
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 65536,
+        "max_abs": 0.00016000866889953613,
+        "rms": 5.900273889189278e-06,
+        "relative_rms": 0.00058917091085711
+      },
+      "layer_native_materialized_vs_reference": {
+        "elements": 65536,
+        "max_abs": 0.0009765625,
+        "rms": 5.660339309634682e-05,
+        "relative_rms": 0.0032348642466939917
+      },
+      "layer_native_online_vs_reference": {
+        "elements": 65536,
+        "max_abs": 0.0009765625,
+        "rms": 4.8160573149483006e-05,
+        "relative_rms": 0.002752360020473898
+      },
+      "layer_native_online_vs_native_materialized": {
+        "elements": 65536,
+        "max_abs": 0.00146484375,
+        "rms": 5.3776309942027584e-05,
+        "relative_rms": 0.0030729768399532253
+      }
+    },
+    "mask_edge": {
+      "float_online_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 7.450580596923828e-09,
+        "rms": 5.298244553950604e-10,
+        "relative_rms": 5.33573897892798e-08
+      },
+      "native_materialized_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 2.635456621646881e-05,
+        "rms": 3.4279550216298192e-06,
+        "relative_rms": 0.00034522138494501553
+      },
+      "native_online_vs_float_dense": {
+        "elements": 1536,
+        "max_abs": 6.3478946685791016e-06,
+        "rms": 2.505185244673718e-06,
+        "relative_rms": 0.0002522913848790493
+      },
+      "native_online_vs_native_materialized": {
+        "elements": 1536,
+        "max_abs": 2.754107117652893e-05,
+        "rms": 2.3987323262226885e-06,
+        "relative_rms": 0.00024157305203106053
+      }
+    }
+  },
+  "result": "PASS",
+  "precision_policy": "a16exact",
+  "peak_torch_allocated_mib_including_checkpoint_load": 5438.7890625
+}
