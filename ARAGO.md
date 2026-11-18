@@ -63,6 +63,77 @@ The assignment's architecture table and workload (September 18, 2026, pp. 2–4)
 
 **Why keep the integer reference?** At K=128 the all-127 dot equals 2,064,512. A signed INT16 return tops out at 32,767. An in-range exact fallback expands each signed byte as `x = 16h + l`, with both digits of magnitude at most eight. Each of the four digit products summed over at most 256 positions fits INT16. Reconstruct the dot in INT32 as `256 HH + 16 (HL + LH) + LL`. Timing this policy would require four commands and drains plus packing and reconstruction. The narrower input representation also needs its own accuracy check against A16. [Timing configuration](configs/arago_dual_array.json) · [Hardware implementation](src/arago/Hardware.cc)
 
+## FlashAttention on the control CPU
+
+The Linux host launches a kernel for a decoder layer. The device control CPU runs the loops below and issues DMA, array and vector commands. Its inputs are Q after rotary position encoding and the K/V history in device DRAM, including the current positions. The output is one 128-feature vector per user, query position and query head, ready for the output projection. The tile order lets K and V serve four query heads and lets almost all score and weight traffic stay on-chip. [Layer implementation](src/arago/DecoderLayer.cc) · [FlashAttention paper](https://arxiv.org/abs/2205.14135)
+
+### Choose two levels of tiling
+
+For one user and one of eight KV heads, take up to 32 query positions for each of its four query heads. Flatten these to at most 128 rows. Stream up to 128 key positions at a time. A full score product has shape `[128,128] × [128,128] → [128,128]`, with the shared head width as the reduction dimension. The second product multiplies tile weights by V, reducing over the key positions to give 128 output features per row. Each row retains its own query position and head. Flattening is only a layout choice.
+
+Inside either full product, divide the 128 output columns into eight strips of 16. Divide the 128 output rows into two groups of 48 plus 32. Each group of 48 gives 16 rows to the small array and 32 to the large array. That makes 16 small-array and 24 large-array outputs per product. During single-token decode the same four query heads give just four live rows; the baseline uses a padded 16-row strip. Tail handling suppresses invalid rows, columns and future keys.
+
+### Reserve 449 KiB at the peak of prefill
+
+| Live SRAM data | Size | Lifetime |
+|---|---:|---|
+| Q16 input and packed Q8 | 32 + 16 KiB | Q8 stays resident while the kernel scans this panel's visible keys. |
+| Two K/V staging slots | 2 × 96 KiB | Each slot holds K16, V16, K8 and V8 (32 + 32 + 16 + 16 KiB). Fill one while the other is in use. |
+| QK return, vector exponential workspace, packed weights | 32 + 64 + 16 KiB | Reused on every key block. |
+| PV return and FP32 running numerator U | 32 + 64 KiB | Reuse the return tile; preserve U across the scan. |
+| FP32 running maximum m and mass l | 1 KiB | Two scalars for each of 128 rows. |
+| **Total** | **449 KiB of 1,024 KiB** | One user, one KV head and one query panel at a time. |
+
+The implementation reserves tensor storage. Alignment, scale metadata and descriptors would use part of the remaining 575 KiB if kept in SRAM. Final A16 output can occupy retired input or temporary storage until its DMA write completes. A full K/V block costs 64 KiB of DRAM reads, shared across all four heads for this query panel.
+
+### Control program
+
+`DMA`, `ARRAY_PANEL` and `SIMD` below represent device commands. The controller arranges dependencies and waits before consuming a result or overwriting a slot. Two independent commands can be in flight together. The two reads of K and V use separate descriptors on the single DMA FIFO. A panel command expands into the native tiles described above. The SIMD helpers use the documented fast-path scales. State initialization describes the starting values; the timing model folds it into first-block handling. It charges fused SIMD passes rather than a new command for every expression.
+
+```text
+for each user, KV head g, and query panel for the four heads sharing g:
+    rows = valid (head, absolute query position) pairs for this panel
+    key_end = 1 + max(absolute query position in rows)
+    blocks = split [0, key_end) into blocks of at most 128 keys
+    reserve the panel workspace
+    Q_ready = DMA.read Q16 from this user and these rows
+    Q8 = SIMD.pack(Q16) after Q_ready
+    SIMD.initialize m = -infinity, l = 0, U = 0 for every row
+    start DMA.read K16 and V16 for blocks[0] into slot[0]
+
+    for b in increasing block order:
+        cur = b mod 2
+        if b+1 exists:
+            start K16 and V16 reads for b+1 into the other slot
+                when that slot's previous consumer is done
+        K8, V8 = SIMD.pack(slot[cur]) after both current reads complete
+        S16 = ARRAY_PANEL(Q8, transpose(K8)) after inputs are ready
+
+        SIMD after S16 has drained to SRAM:
+            restore the score scale, multiply by 1/sqrt(128)
+            valid[row,key] = key is real and key_position <= query_position[row]
+            for each row with at least one valid key in this block:
+                new_m = max(m, maximum valid score)
+                alpha = exp(m - new_m) if l > 0 else 0
+                P = exp(score - new_m) on valid keys, 0 elsewhere
+                l = alpha*l + sum(P)
+                m = new_m
+            for a row with no valid key: keep m,l; use alpha=1 and P=0
+            pack P to P8 and retain its row scale
+
+        T16 = ARRAY_PANEL(P8, V8) after P8 is ready
+        SIMD after T16 has drained: U = alpha*U + restore_scale(T16)
+        mark slot[cur] reusable after this update
+
+    O16 = SIMD.convert_to_A16(U/l per row, or zero if l == 0)
+    DMA.write valid O16 rows to this user's output addresses
+    wait for the write before reusing the panel workspace
+```
+
+Each row holds a running maximum m, an exponential sum l and a weighted value sum U. When a later block raises m, multiplying both earlier sums by `exp(old_m − new_m)` puts them on the new scale. This makes the final division mathematically equivalent to applying one softmax across all valid keys in real arithmetic. Finite precision, INT8 packing and the assumed INT16 return contribute numerical error. The numerical reference compares both schedules against dense attention. [PyTorch checker](tools/arago/check_attention.py)
+
+For the baseline, each DMA, array and vector command incurs 200, 100 and 300 delivery cycles respectively; their resource rates and DRAM first-byte waits still apply. Prefetch overlaps useful computation only when the other slot is free and DMA can actually serve it. In the recorded 16-user prefill, DRAM payload for the attention phase falls from 12.6875 to 4.5625 GiB; attention takes 1.606 billion cycles materialized and 1.085 billion streaming. These results cover the chosen mapping and numerical policy. [Recorded timing](example/arago/results/layer-comparison.json)
+
 ## Problems to resolve and improvements to test
 
 | Problem observed | Next experiment |
@@ -75,4 +146,4 @@ The assignment's architecture table and workload (September 18, 2026, pp. 2–4)
 
 Two candidate hardware improvements are a queued DMA descriptor list to hide command delivery between transfers, and programmable array-output shifts before the INT16 return. Compare each independently with the fixed baseline and report its change in per-user decode rate.
 
-For the report, match the FlashAttention pseudocode to the measured SRAM allocation (449 KiB for streaming prefill), rank the measured bottlenecks, and evaluate two architectural changes individually against the same baseline. Keep hardware proposals separate from software-only scheduling improvements. [One-layer timing results](example/arago/results/layer-comparison.json) · [Layer schedule](src/arago/DecoderLayer.cc)
+For the report, use the control program and its 449 KiB prefill allocation above, rank the measured bottlenecks, and evaluate two architectural changes individually against the same baseline. Keep hardware proposals separate from software-only scheduling improvements. [One-layer timing results](example/arago/results/layer-comparison.json) · [Layer schedule](src/arago/DecoderLayer.cc)
