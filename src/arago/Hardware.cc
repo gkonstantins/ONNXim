@@ -34,7 +34,11 @@ std::size_t index(Array engine) {
 }  // namespace
 
 Hardware::Hardware(HardwareConfig config, std::size_t trace_limit)
-    : config_(config), trace_limit_(trace_limit) {
+    : config_(config), trace_limit_(config.trace_engines ? 8192 : trace_limit) {
+  if (config.program) {
+    primitive_id_ = config.program->next++;
+    trace_limit_ = primitive_id_ == config.program->selected ? std::numeric_limits<std::size_t>::max() : 0;
+  }
   if (!config_.mac_percent || !config_.scratchpad_bytes || !config_.dma_bytes_per_cycle || !config_.sram_dma_rate ||
       !config_.array_input_bytes_per_cycle[0] || !config_.array_input_bytes_per_cycle[1] ||
       !config_.array_output_bytes_per_cycle || !config_.vector_bytes_per_cycle)
@@ -42,9 +46,9 @@ Hardware::Hardware(HardwareConfig config, std::size_t trace_limit)
 }
 
 void Hardware::record(Unit unit, Action action, Cycle ready, Cycle start,
-                      Cycle end, std::uint64_t bytes) {
+                      Cycle end, std::uint64_t bytes, Cycle posted, Cycle delivered, Cycle service) {
   if (events_.size() < trace_limit_)
-    events_.push_back({unit, action, ready, start, end, bytes});
+    events_.push_back({unit, action, ready, start, end, bytes, trace_operation_, trace_kv_block_, posted, delivered, service});
 }
 
 Cycle Hardware::dma(std::uint64_t bytes, Cycle ready, bool is_write) {
@@ -68,7 +72,7 @@ Cycle Hardware::dma(std::uint64_t bytes, Cycle ready, bool is_write) {
   dma_busy_ = add(dma_busy_, end - start);
   free = end;
   if (config_.duplex_dma) dma_intervals_.push_back({start, end});
-  record(Unit::Dma, is_write ? Action::Write : Action::Read, ready, start, end, bytes);
+  record(Unit::Dma, is_write ? Action::Write : Action::Read, ready, start, end, bytes, posted, delivery, first);
   return end;
 }
 
@@ -100,9 +104,10 @@ Cycle Hardware::vector(std::uint64_t port_bytes, Cycle ready) {
   vector_delivery_ = add(start, config_.vector_launch);
   const Cycle service = ceil_div(port_bytes, config_.vector_bytes_per_cycle);
   const Cycle end = add(std::max(vector_free_, vector_delivery_), service);
+  ++vector_commands_;
   vector_bytes_ = add(vector_bytes_, port_bytes);
   vector_free_ = end;
-  record(Unit::Vector, Action::Vector, ready, start, end, port_bytes);
+  record(Unit::Vector, Action::Vector, ready, start, end, port_bytes, start, vector_delivery_, end-service);
   return end;
 }
 

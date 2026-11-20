@@ -89,3 +89,14 @@ The output records maximum absolute error, RMS error, and relative RMS aggregate
 | Native online vs. float32 reference attention | 5.307% | 4.772% |
 | Decoder-block outputs using native online vs. native materialized attention | 0.4166% | 0.4019% |
 | Decoder-block output using native online vs. reference attention | 1.822% | 1.743% |
+
+## Shared engine and Carlota
+
+The focused build produces `build/arago/cmake/arago/libarago_device.so`. The CLI
+uses ONNXim admission and retirement around `arago::Region::run`. Carlota calls
+the same region through the C ABI in `src/arago/Binding.h`. ABI version 1
+accepts UTF-8 hardware JSON, schedule, batch size, query length and visible
+context. Copy the returned JSON before the next call on the same thread.
+Failures return a JSON object with an error message. The canonical hardware
+preset is `configs/arago_dual_array.json`. Operator profiles and engine-event
+traces are opt-in. Normal runs retain the original timing and output fields.

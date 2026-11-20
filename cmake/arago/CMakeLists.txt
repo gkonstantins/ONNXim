@@ -30,9 +30,9 @@ target_link_libraries(onnxim_language PUBLIC spdlog::spdlog nlohmann_json::nlohm
   ${ONNX_LIBRARY} ${ONNX_PROTO_LIBRARY} ${PROTOBUF_LIBRARY})
 target_precompile_headers(onnxim_language PRIVATE "${src}/Common.h")
 
-add_library(arago_device ${src}/arago/Hardware.cc ${src}/arago/DecoderLayer.cc)
-target_include_directories(arago_device PUBLIC ${src} ${src}/arago)
-target_compile_features(arago_device PUBLIC cxx_std_17)
+add_subdirectory("${src}/arago" device)
+# Preserve the focused build's public artifact path alongside the CLI.
+set_target_properties(arago_device PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 add_executable(onnxim-arago ${src}/main.cc ${src}/helper/CommandLineParser.cc ${src}/arago/Run.cc)
 target_compile_definitions(onnxim-arago PRIVATE ONNXIM_ARAGO_ONLY)
 target_include_directories(onnxim-arago PRIVATE ${BOOST_INCLUDE_DIR})

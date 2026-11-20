@@ -12,7 +12,14 @@ enum class Array { Small, Large };
 
 // Rates are payload bytes per 1 GHz target cycle. Read and write DMA
 // descriptors use the same resource. The two DMA links pipeline a payload.
+// Per invocation. Number each independently simulated primitive in schedule order.
+struct TraceProgram {
+  int selected = -1;
+  int next = 0;
+};
+
 struct HardwareConfig {
+  TraceProgram* program = nullptr;
   std::uint64_t scratchpad_bytes = 1ULL << 20;
   std::uint64_t dma_bytes_per_cycle = 64;
   std::uint64_t sram_dma_rate = UINT64_MAX;
@@ -21,6 +28,7 @@ struct HardwareConfig {
   bool share_kv = true;
   unsigned mac_percent = 100;
   unsigned pipeline_stages = 1, tensor_shards = 1, query_tile = 32, key_tile = 128;
+  bool trace_engines = false;
   bool trace_panels = false, exact_digits = false, exact_a16 = false, model_endpoints = false;
   Cycle dma_setup = 200;
   Cycle dram_read_start = 200;
@@ -41,6 +49,9 @@ struct Event {
   Cycle start;
   Cycle end;
   std::uint64_t bytes;
+  const char* operation = nullptr;
+  int kv_block = -1;
+  Cycle posted = 0, delivered = 0, service = 0; // DMA or SIMD phase boundaries
 };
 
 // The caller issues a FIFO per resource and supplies cross-resource
@@ -66,13 +77,19 @@ class Hardware {
   Cycle finish() const;
   std::uint64_t read_bytes() const { return read_bytes_; }
   std::uint64_t write_bytes() const { return write_bytes_; }
+  void trace_label(const char* operation, int kv_block = -1) {
+    trace_operation_ = operation;
+    trace_kv_block_ = kv_block;
+  }
   Cycle dma_busy_cycles() const;
   std::uint64_t read_descriptors() const { return reads_; }
   std::uint64_t write_descriptors() const { return writes_; }
+  std::uint64_t vector_commands() const { return vector_commands_; }
   std::uint64_t vector_bytes() const { return vector_bytes_; }
   std::uint64_t peak_sram() const { return peak_sram_; }
   std::uint64_t array_tiles(Array engine) const;
   Cycle array_compute_cycles(Array engine) const;
+  int primitive_id() const { return primitive_id_; }
   const std::vector<Event>& events() const { return events_; }
 
  private:
@@ -84,10 +101,13 @@ class Hardware {
     std::uint64_t tiles = 0;
   };
   void record(Unit unit, Action action, Cycle ready, Cycle start, Cycle end,
-              std::uint64_t bytes);
+              std::uint64_t bytes, Cycle posted = 0, Cycle delivered = 0, Cycle service = 0);
   Cycle dma(std::uint64_t bytes, Cycle ready, bool is_write);
   HardwareConfig config_;
   std::size_t trace_limit_;
+  int primitive_id_ = -1;
+  const char* trace_operation_ = nullptr;
+  int trace_kv_block_ = -1;
   std::vector<Event> events_;
   std::array<Pipeline, 2> pipelines_;
   Cycle dma_free_ = 0;
@@ -100,6 +120,7 @@ class Hardware {
   std::uint64_t write_bytes_ = 0;
   std::uint64_t reads_ = 0;
   std::uint64_t writes_ = 0;
+  std::uint64_t vector_commands_ = 0;
   std::uint64_t vector_bytes_ = 0;
   std::uint64_t live_sram_ = 0;
   std::uint64_t peak_sram_ = 0;

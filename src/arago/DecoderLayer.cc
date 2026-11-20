@@ -23,6 +23,17 @@ Count add_repeated(Count base, Count increment, Count times) {
 }
 
 void append(PhaseMetrics& total, const PhaseMetrics& p, Count repetitions = 1) {
+  if (!total.sample && p.sample && repetitions) {
+    total.sample = p.sample;
+    total.sample_offset = total.cycles + p.sample_offset;
+  }
+  if (p.program.size() == 1 && repetitions) {
+    const auto& run = p.program.front();
+    total.program.push_back({run.id, run.cycles, add_repeated(0, run.repeats, repetitions)});
+  } else if (!p.program.empty()) {
+    for (Count i = 0; i < repetitions; ++i)
+      total.program.insert(total.program.end(), p.program.begin(), p.program.end());
+  }
   total.cycles = add_repeated(total.cycles, p.cycles, repetitions);
   total.read_bytes = add_repeated(total.read_bytes, p.read_bytes, repetitions);
   total.write_bytes = add_repeated(total.write_bytes, p.write_bytes, repetitions);
@@ -31,13 +42,21 @@ void append(PhaseMetrics& total, const PhaseMetrics& p, Count repetitions = 1) {
   total.large_tiles = add_repeated(total.large_tiles, p.large_tiles, repetitions);
   total.small_compute_cycles = add_repeated(total.small_compute_cycles, p.small_compute_cycles, repetitions);
   total.large_compute_cycles = add_repeated(total.large_compute_cycles, p.large_compute_cycles, repetitions);
+  total.vector_bytes = add_repeated(total.vector_bytes, p.vector_bytes, repetitions);
   total.dma_busy_cycles = add_repeated(total.dma_busy_cycles, p.dma_busy_cycles, repetitions);
 }
 
 PhaseMetrics metrics(const Hardware& h) {
-  return {h.finish(), h.read_bytes(), h.write_bytes(), h.peak_sram(),
+  PhaseMetrics result{h.finish(), h.read_bytes(), h.write_bytes(), h.peak_sram(),
           h.array_tiles(Array::Small), h.array_tiles(Array::Large),
-          h.array_compute_cycles(Array::Small), h.array_compute_cycles(Array::Large), h.dma_busy_cycles()};
+          h.array_compute_cycles(Array::Small), h.array_compute_cycles(Array::Large), h.vector_bytes(), h.dma_busy_cycles()};
+  if (h.primitive_id() >= 0) result.program.push_back({h.primitive_id(),result.cycles,1});
+  if (!h.events().empty()) {
+    const Count events = h.read_descriptors()+h.write_descriptors()+h.vector_commands()
+                       +3*(result.small_tiles+result.large_tiles);
+    result.sample = std::make_shared<EngineWindow>(EngineWindow{h.events(),result.cycles,events});
+  }
+  return result;
 }
 
 Count ceil_div(Count n, Count d) { return (n + d - 1) / d; }
@@ -134,9 +153,10 @@ PhaseMetrics dense_slab(Count m, unsigned n, unsigned k, const HardwareConfig& c
   return metrics(h);
 }
 
-void dense(PhaseMetrics& out, Count m, unsigned n, unsigned k, const HardwareConfig& cfg) {
+PhaseMetrics dense(Count m, unsigned n, unsigned k, const HardwareConfig& cfg) {
   // Each output slab completes before reusing its allocation. All model N
   // dimensions are multiples of 128, including the two fused projections.
+  PhaseMetrics out;
   constexpr Count mblock = 192;
   constexpr unsigned nblock = 128;
   if (n % nblock) throw std::logic_error("unexpected projection width");
@@ -144,6 +164,7 @@ void dense(PhaseMetrics& out, Count m, unsigned n, unsigned k, const HardwareCon
     append(out, dense_slab(mblock, nblock, k, cfg), (m/mblock) * (n/nblock));
   }
   if (m % mblock) append(out, dense_slab(m%mblock, nblock, k, cfg), n/nblock);
+  return out;
 }
 
 enum class VectorOp { Norm, Rotary, CopyKV, Residual, SwiGLU };
@@ -217,6 +238,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
   };
 
   Cycle done = 0;
+  h.trace_label("Query load and pack");
   if (algorithm == AttentionSchedule::Naive) {
     // Pass 1: QK. Scores are 16-bit; compact spills omit padding lanes.
     const Count qk_space = 2*qb + padded*head_dim + 3*kv + 2*score_scratch;
@@ -224,6 +246,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
     done = h.vector(2*qb+padded*head_dim, h.read(2*qb));
     for (Count b = 0; b < blocks; ++b) {
       const auto n = keys_at(b);
+      h.trace_label("QK and score spill", b);
       auto packed = h.vector(3*n*head_dim, h.read(2*n*head_dim, done));
       done = panel_gemm(h, rows, n, head_dim, packed,cfg);
       done = h.write(2*rows*n, done);
@@ -237,6 +260,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
     const Count row_bytes = 2*Count(prefix)+8;
     const Count soft_rows = std::min({rows, Count(32), cfg.scratchpad_bytes / row_bytes});
     if (!soft_rows) throw std::invalid_argument("one softmax row exceeds SRAM");
+    h.trace_label("Row softmax");
     h.reserve(soft_rows*row_bytes);
     for (Count r = 0; r < rows; r += soft_rows) {
       const auto nr = std::min(soft_rows, rows-r);
@@ -252,12 +276,14 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
     h.reserve(pv_space);
     for (Count b = 0; b < blocks; ++b) {
       const auto n = keys_at(b);
+      h.trace_label("PV and accumulation", b);
       const auto v = h.read(2*n*head_dim, done);
       const auto p = h.read(2*rows*n, done);
       const auto packed = h.vector((2*rows+padded)*n + 3*n*head_dim, std::max(p,v));
       done = panel_gemm(h, rows, head_dim, n, packed,cfg);
       done = h.vector(value_scratch*(b == 0 ? 6 : 10), done);
     }
+    h.trace_label("Attention output");
     done = h.vector(4*value_scratch+2*qb, done);
     h.write(2*qb, done);
     h.release(pv_space);
@@ -269,17 +295,21 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
     done = h.vector(2*qb+padded*head_dim,h.read(2*qb));
     for (Count b=0;b<blocks;++b) {
       const auto n=keys_at(b);
+      h.trace_label("QK and score staging", b);
       const auto packed=h.vector(3*n*head_dim,h.read(2*n*head_dim,done));
       done=panel_gemm(h,rows,n,head_dim,packed,cfg);
       done=h.vector(2*(padded+rows)*n,done);
     }
+    h.trace_label("Row softmax");
     done=h.vector(8*rows*prefix,done);
     for (Count b=0;b<blocks;++b) {
       const auto n=keys_at(b);
+      h.trace_label("PV and accumulation", b);
       const auto packed=h.vector((2*rows+padded)*n+3*n*head_dim,h.read(2*n*head_dim,done));
       done=panel_gemm(h,rows,head_dim,n,packed,cfg);
       done=h.vector(value_scratch*(b ? 10 : 6),done);
     }
+    h.trace_label("Attention output");
     h.write(2*qb,h.vector(4*value_scratch+2*qb,done));
   } else {
     // Double-buffered K/V: prefetch b+1 while processing b. The slot for
@@ -290,7 +320,9 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
     const auto query_ready = h.vector(2*qb+padded*head_dim, h.read(2*qb));
     auto load = [&](Count b, Cycle slot_free) {
       const auto bytes = 2*keys_at(b)*head_dim;
+      h.trace_label("K prefetch", b);
       h.read(bytes, slot_free);
+      h.trace_label("V prefetch", b);
       return h.read(bytes, slot_free);
     };
     Cycle ready = load(0, 0), slot_ready = 0;
@@ -298,13 +330,18 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       const auto n = keys_at(b);
       const Cycle prior_done = done;
       Cycle next = cfg.double_buffer && b+1 < blocks ? load(b+1, done) : 0;
+      h.trace_label("KV packing", b);
       const auto packed = h.vector(6*n*head_dim, ready);
+      h.trace_label("QK", b);
       const auto scores = panel_gemm(h, rows, n, head_dim, std::max({packed, query_ready, done}),cfg);
       // SIMD reads logits and builds normalized-to-local-max INT8 weights;
       // FP32 temporaries allow two passes over exp values. m/l are FP32.
+      h.trace_label("Online softmax", b);
       const auto weights = h.vector((2*rows + 8*rows + padded)*n + 16*rows, scores);
+      h.trace_label("PV", b);
       const auto values = panel_gemm(h, rows, head_dim, n, weights,cfg);
       // Fused rescale of old numerator and addition of new widened partial.
+      h.trace_label("Rescale and accumulate", b);
       done = h.vector(value_scratch*(b == 0 ? 6 : 10), values);
       if (plan) plan->push_back({first,q,static_cast<unsigned>(b*kv_block),
           static_cast<unsigned>(n),static_cast<unsigned>(cfg.double_buffer ? b%2 : 0),
@@ -312,6 +349,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       slot_ready = cfg.double_buffer ? prior_done : done;
       ready = !cfg.double_buffer && b+1 < blocks ? load(b+1,done) : next;
     }
+    h.trace_label("Attention output");
     done = h.vector(4*value_scratch+4*rows+2*qb, done);
     h.write(2*qb, done);
     h.release(allocation);
@@ -319,10 +357,20 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
   return metrics(h);
 }
 
+void record_phase(PhaseMetrics& total, OperatorProfile* profile, const char* name,
+                  const PhaseMetrics& part, Count repetitions = 1) {
+  append(total, part, repetitions);
+  if (profile) {
+    PhaseMetrics combined;
+    append(combined, part, repetitions);
+    profile->emplace_back(name, combined);
+  }
+}
+
 }  // namespace
 
 LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedule,
-                               const HardwareConfig& config) {
+                               const HardwareConfig& config, OperatorProfile* profile) {
   if (!shape.batch || !shape.queries || shape.context < shape.queries ||
       shape.context > max_context || shape.batch > 65535) {
     throw std::invalid_argument("invalid Llama batch, query length or visible context");
@@ -334,10 +382,10 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
   const auto q_block = schedule == AttentionSchedule::RowBlocked ? std::min(4u,config.query_tile) : config.query_tile;
   const Count m = Count(shape.batch)*shape.queries;
   LayerMetrics out;
-  append(out.layer, vector_rows(m, hidden, VectorOp::Norm, config));
-  dense(out.layer, m, (hidden+2*kv_width)/tp, hidden, config); // fused Q/K/V
-  append(out.layer, vector_rows(m, (hidden+kv_width)/tp, VectorOp::Rotary, config));
-  append(out.layer, vector_rows(m, 2*kv_width/tp, VectorOp::CopyKV, config));
+  record_phase(out.layer, profile, "input_norm", vector_rows(m, hidden, VectorOp::Norm, config));
+  record_phase(out.layer, profile, "qkv", dense(m, (hidden+2*kv_width)/tp, hidden, config)); // fused Q/K/V
+  record_phase(out.layer, profile, "rope", vector_rows(m, (hidden+kv_width)/tp, VectorOp::Rotary, config));
+  record_phase(out.layer, profile, "kv_append", vector_rows(m, 2*kv_width/tp, VectorOp::CopyKV, config));
 
   const unsigned past = shape.context - shape.queries;
   for (unsigned first = 0; first < shape.queries; first += q_block) {
@@ -345,33 +393,36 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
     // No command for fully future KV blocks; each issued rectangle includes
     // masked elements for early query rows. Identical completed GQA groups
     // are replayed exactly; distinct requests own distinct caches.
-    append(out.attention, attention_group(q, past+first+q, schedule, config,first,
+    auto panel_config = config;
+    panel_config.trace_engines = config.trace_engines && first+q == shape.queries;
+    append(out.attention, attention_group(q, past+first+q, schedule, panel_config,first,
            config.trace_panels ? &out.tile_plan : nullptr),
            Count(shape.batch)*kv_heads/tp*(config.share_kv ? 1 : group));
   }
-  append(out.layer, out.attention);
-  dense(out.layer, m, hidden, hidden/tp, config); // attention output projection
-  append(out.layer, vector_rows(m, hidden, VectorOp::Residual, config));
-  append(out.layer, vector_rows(m, hidden, VectorOp::Norm, config));
-  dense(out.layer, m, 2*ffn/tp, hidden, config); // fused gate and up
-  append(out.layer, vector_rows(m, ffn/tp, VectorOp::SwiGLU, config));
-  dense(out.layer, m, hidden, ffn/tp, config); // down
-  append(out.layer, vector_rows(m, hidden, VectorOp::Residual, config));
+  record_phase(out.layer, profile, "attention", out.attention);
+  record_phase(out.layer, profile, "out_proj", dense(m, hidden, hidden/tp, config)); // attention output projection
+  record_phase(out.layer, profile, "attention_residual", vector_rows(m, hidden, VectorOp::Residual, config));
+  record_phase(out.layer, profile, "post_norm", vector_rows(m, hidden, VectorOp::Norm, config));
+  record_phase(out.layer, profile, "gate_up", dense(m, 2*ffn/tp, hidden, config)); // fused gate and up
+  record_phase(out.layer, profile, "swiglu", vector_rows(m, ffn/tp, VectorOp::SwiGLU, config));
+  record_phase(out.layer, profile, "down_proj", dense(m, hidden, ffn/tp, config)); // down
+  record_phase(out.layer, profile, "ffn_residual", vector_rows(m, hidden, VectorOp::Residual, config));
   return out;
 }
 
 // Replicated embedding and vocabulary head; only last-position logits are needed.
-PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& cfg, Cycle& embedding) {
+PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& cfg, Cycle& embedding,
+                           OperatorProfile* profile) {
   PhaseMetrics result;
   Hardware embed(cfg);
   embed.reserve(3*hidden);
   auto t = embed.read(hidden);  // W8 embedding row
   t = embed.vector(3*hidden,t);
   embed.write(2*hidden,t);
-  append(result,metrics(embed),Count(shape.batch)*shape.queries);
+  record_phase(result,profile,"embedding",metrics(embed),Count(shape.batch)*shape.queries);
   embedding = result.cycles;
-  append(result,vector_rows(shape.batch,hidden,VectorOp::Norm,cfg));
-  dense(result,shape.batch,128256,hidden,cfg);
+  record_phase(result,profile,"final_norm",vector_rows(shape.batch,hidden,VectorOp::Norm,cfg));
+  record_phase(result,profile,"lm_head",dense(shape.batch,128256,hidden,cfg));
   // Greedy argmax over A16 logits in SRAM-sized chunks, one INT32 id per user.
   Hardware argmax(cfg);
   argmax.reserve(2*16384+16);
@@ -381,7 +432,7 @@ PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& cfg, C
     t = argmax.vector(bytes+16,argmax.read(bytes,t));
   }
   argmax.write(4,t);
-  append(result,metrics(argmax),shape.batch);
+  record_phase(result,profile,"argmax",metrics(argmax),shape.batch);
   return result;
 }
 
