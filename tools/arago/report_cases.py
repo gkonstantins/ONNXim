@@ -39,8 +39,8 @@ def join(study, design, elastic, four):
         metrics = rates(rec["ttft_device_s"], rec["decode_ms"]/1000, batch)
         if abs(metrics["tokens_s_user"]-rec["tokens_s_user"]) > 1e-9:
             raise ValueError(f"Inconsistent decode rate for {key}")
-        metrics["attention_share_prefill"] = 32*rec["prefill_attention_cycles"]/1e9/metrics["ttft_s"]
-        metrics["attention_share_decode"] = 32*rec["decode_attention_mean_cycles"]/1e9/metrics["tbt_s"]
+        metrics["attention_share_prefill"] = 32*rec["prefill_attention_cycles"]/rec.get("clock_hz",1e9)/metrics["ttft_s"]
+        metrics["attention_share_decode"] = 32*rec["decode_attention_mean_cycles"]/rec.get("clock_hz",1e9)/metrics["tbt_s"]
         counts = elastic["profiles"][profile]["baseline_cycles"]
         for phase in ("prefill","decode"):
             if counts[phase] != rec["attention_counters"][phase]["cycles"]:

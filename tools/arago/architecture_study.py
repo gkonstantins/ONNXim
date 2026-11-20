@@ -8,6 +8,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from statistics import mean
+from units import clock_hz, cycles_ns
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_BINARY = ROOT / "build/arago/cmake/arago/onnxim-arago"
@@ -55,16 +56,17 @@ def attention_counters(rows):
 
 def summarize(rows, baseline):
     att = lambda group: mean(r["attention"]["cycles"] for r in group)
-    base_time = mean(map(device_cycles,baseline[1:]))
-    time = mean(map(device_cycles,rows[1:]))
+    base_time = mean(cycles_ns(device_cycles(r),r) for r in baseline[1:])
+    time = mean(cycles_ns(device_cycles(r),r) for r in rows[1:])
     return {"attention_counters":{"prefill":attention_counters(rows[:1]),"decode":attention_counters(rows[1:])},
-            "ttft_device_s":device_cycles(rows[0])/1e9, "decode_ms":time/1e6,
+            "ttft_device_s":cycles_ns(device_cycles(rows[0]),rows[0])/1e9, "decode_ms":time/1e6,
             "tokens_s_user":1e9/time,"decode_speedup":base_time/time,
             "prefill_attention_cycles":att(rows[:1]), "decode_attention_mean_cycles":att(rows[1:]),
             "peak_layer_sram_B":max(r["layer"]["peak_sram_bytes"] for r in rows),
             "prefill_layer_dram_B":sum(rows[0]["layer"][k] for k in ("dram_read_bytes","dram_write_bytes")),
-            "prefill_attention_speedup":att(baseline[:1])/att(rows[:1]),
-            "decode_attention_speedup":att(baseline[1:])/att(rows[1:])}
+            "prefill_attention_speedup":cycles_ns(att(baseline[:1]),baseline[0])/cycles_ns(att(rows[:1]),rows[0]),
+            "decode_attention_speedup":cycles_ns(att(baseline[1:]),baseline[0])/cycles_ns(att(rows[1:]),rows[0]),
+            **({"clock_hz":clock_hz(rows[0])} if clock_hz(rows[0])!=10**9 else {})}
 
 
 def host_payload(batch, queries, dp, tp, pp):
@@ -146,7 +148,7 @@ def ideal_roof(batch=16, devices=4):
         mac = batch*(weights + 2*LAYERS*4096*context)
         traffic = weights + 2*batch*LAYERS*1024*2*context
         step_ns.append(max(mac/(768*devices),traffic/(64*devices)))
-    compute = mean(step_ns)
+    compute = cycles_ns(mean(step_ns),json.loads(BASE.read_text()))
     up,down,phases=host_payload(batch,1,1,devices,1)
     return {"tokens_s_user":1e9/compute,"tokens_s_batch":batch*1e9/compute,
             "GB_s_for_70pct_ideal_overlap":bandwidth_for_fraction(compute,up,down,phases,.70,
@@ -157,7 +159,7 @@ def ideal_roof(batch=16, devices=4):
 
 def run(binary, manifest):
     study = json.loads(manifest.read_text())
-    result = {"clock_hz":10**9,"config_sha256":hashlib.sha256(BASE.read_bytes()).hexdigest(),
+    result = {"clock_hz":json.loads(BASE.read_text())["clock_hz"],"config_sha256":hashlib.sha256(BASE.read_bytes()).hexdigest(),
               "manifest_sha256":hashlib.sha256(manifest.read_bytes()).hexdigest(),"single":{},"four":[],"factorial":[], "ideal_four":ideal_roof()}
     sources = sorted((ROOT/"src/arago").glob("*.[ch]*")) + [Path(__file__)]
     result["timing_source_sha256"] = hashlib.sha256(b"".join(p.read_bytes() for p in sources)).hexdigest()
@@ -203,8 +205,8 @@ def run(binary, manifest):
                 resident = max(rank_resident_bytes(row,tp,pp,micro) for row in rows)
                 if resident > json.loads(BASE.read_text())["dram_bytes"]:
                     raise ValueError("pipeline rank exceeds DRAM capacity with resident microbatches")
-                decode = mean(pipeline_cycles(row,pp,micro) for row in rows[1:])
-                prefill = pipeline_cycles(rows[0],pp,micro)
+                decode = mean(cycles_ns(pipeline_cycles(row,pp,micro),row) for row in rows[1:])
+                prefill = cycles_ns(pipeline_cycles(rows[0],pp,micro),rows[0])
                 up,down,phases = host_payload(batch,1,dp,tp,pp)
                 phases *= micro
                 for label,opts in study["host_models"].items():

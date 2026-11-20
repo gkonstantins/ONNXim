@@ -5,6 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 from statistics import mean
+from units import clock_hz, cycles_ns
 
 from architecture_study import (
     DEFAULT_BINARY, DESIGN, ROOT, host_payload, host_service, ideal_roof,
@@ -106,7 +107,7 @@ def build(binary, manifest):
                     raise ValueError("unequal microbatches")
                 rows = simulate(binary, Path(tmp), USERS//(dp*micro), "flashattention",
                                 {"tensor_shards":tp, "pipeline_stages":pp},PROMPT,OUTPUTS)
-                service[(dp,tp,pp,micro)] = [pipeline_cycles(row,pp,micro) for row in rows]
+                service[(dp,tp,pp,micro)] = [cycles_ns(pipeline_cycles(row,pp,micro),row) for row in rows]
     best = max(1e9/mean(cycles[1:]) for cycles in service.values())
     cases = [case_metrics(placement, opts, name, cycles[0], cycles[1:],roof["tokens_s_user"],best)
              for placement,cycles in service.items() for name,opts in settings["host_models"].items()]

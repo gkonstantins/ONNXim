@@ -35,6 +35,13 @@ std::size_t index(Array engine) {
 
 Hardware::Hardware(HardwareConfig config, std::size_t trace_limit)
     : config_(config), trace_limit_(config.trace_engines ? 8192 : trace_limit) {
+  if (!config.clock_hz || config.clock_hz > 1000000000000ULL)
+    throw std::invalid_argument("clock_hz must be 1..1000000000000");
+  if ((config.array_input_bits != 8 && config.array_input_bits != 16) ||
+      (config.array_output_bits != 16 && config.array_output_bits != 32))
+    throw std::invalid_argument("array_input_bits must be 8 or 16; array_output_bits must be 16 or 32");
+  if (config.exact_digits && (config.array_input_bits != 8 || config.array_output_bits != 16))
+    throw std::invalid_argument("exact4 and a16exact require the 8-bit input / 16-bit output digit interface");
   if (config.program) {
     primitive_id_ = config.program->next++;
     trace_limit_ = primitive_id_ == config.program->selected ? std::numeric_limits<std::size_t>::max() : 0;
@@ -123,8 +130,8 @@ Cycle Hardware::gemm_repeat(Array engine, unsigned k, std::uint64_t count, Cycle
   const Unit unit = engine == Array::Small ? Unit::Array16 : Unit::Array32;
   const std::uint64_t rows = engine == Array::Small ? 16 : 32;
   constexpr unsigned cols = 16;
-  const std::uint64_t input_bytes = (rows + cols) * k;       // native INT8
-  const std::uint64_t output_bytes = rows * cols * 2;        // INT16 partial
+  const std::uint64_t input_bytes = (rows + cols) * k * config_.input_bytes();
+  const std::uint64_t output_bytes = rows * cols * config_.output_bytes();
   const Cycle service = std::max<Cycle>(ceil_div(k*100,config_.mac_percent) + (config_.wavefront_fill ? rows + cols - 2 : 0), ceil_div(input_bytes, config_.array_input_bytes_per_cycle[id]));
   const Cycle issue = add(config_.array_launch, service);
   const Cycle drain = ceil_div(output_bytes, config_.array_output_bytes_per_cycle);

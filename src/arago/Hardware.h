@@ -10,7 +10,7 @@ namespace arago {
 using Cycle = std::uint64_t;
 enum class Array { Small, Large };
 
-// Rates are payload bytes per 1 GHz target cycle. Read and write DMA
+// Rates are payload bytes per target cycle. Read and write DMA
 // descriptors use the same resource. The two DMA links pipeline a payload.
 // Per invocation. Number each independently simulated primitive in schedule order.
 struct TraceProgram {
@@ -19,6 +19,10 @@ struct TraceProgram {
 };
 
 struct HardwareConfig {
+  std::uint64_t clock_hz = 1000000000;
+  unsigned array_input_bits = 8, array_output_bits = 16;
+  unsigned input_bytes() const { return array_input_bits / 8; }
+  unsigned output_bytes() const { return array_output_bits / 8; }
   TraceProgram* program = nullptr;
   std::uint64_t scratchpad_bytes = 1ULL << 20;
   std::uint64_t dma_bytes_per_cycle = 64;

@@ -1,6 +1,8 @@
 {
   "target": "arago-dual-array",
   "clock_hz": 1000000000,
+  "array_input_bits": 8,
+  "array_output_bits": 16,
   "dram_bytes": 68719476736,
   "scratchpad_bytes": 1048576,
   "dma_bytes_per_cycle": 64,

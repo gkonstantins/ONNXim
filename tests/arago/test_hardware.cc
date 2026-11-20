@@ -127,6 +127,27 @@ void repeated_pipeline() {
   }
 }
 
+void configurable_native_widths() {
+  HardwareConfig cfg;
+  cfg.array_input_bits = 16;
+  cfg.array_output_bits = 32;
+  Hardware wide(cfg, 8);
+  // 16x16, K=128: 8192 input bytes, 128 compute cycles, 1024 output
+  // bytes / 8 B/cycle. Launch 100 + service 128 + drain 128 = 356.
+  require(wide.gemm(Array::Small,128)==356,"wide native tile timing");
+  require(wide.events()[1].bytes==8192 && wide.events()[2].bytes==1024,"wide port bytes");
+  cfg.array_input_bytes_per_cycle[0] = 32;
+  Hardware input_limited(cfg);
+  require(input_limited.gemm(Array::Small,128)==484,"wide input bandwidth limit");
+  cfg.clock_hz = 2000000000;
+  Hardware faster_clock(cfg);
+  require(faster_clock.gemm(Array::Small,128)==484,"clock must not change cycle counts");
+  cfg.array_input_bits = 7;
+  bool rejected = false;
+  try { Hardware invalid(cfg); } catch (const std::invalid_argument&) { rejected = true; }
+  require(rejected,"invalid native width accepted");
+}
+
 void miscellaneous() {
   Hardware hw;
   require(hw.read(1) == 401 && hw.write(65) == 753, "incorrect shared DMA direction or rounding");
@@ -180,6 +201,7 @@ int main() {
     dual_array();
     same_array_readout_overlap();
     repeated_pipeline();
+    configurable_native_widths();
     miscellaneous();
     transport_variants();
     std::cout << "all hardware checks passed\n";

@@ -57,7 +57,8 @@ void run_trace(const std::string& model_path, const std::string& hardware_path,
                const std::string& trace_path, const std::string& attention,
                unsigned batch_limit, std::ostream& result) {
   if (batch_limit == 0 || batch_limit > 65535) throw std::invalid_argument("batch limit must be 1..65535");
-  const Region region(load_json(hardware_path), attention);
+  const auto hardware = load_json(hardware_path);
+  const Region region(hardware, attention);
   const auto m = load_json(model_path);
   if (m.at("hidden_size") != 4096 || m.at("num_hidden_layers") != 32 ||
       m.at("num_attention_heads") != 32 || m.at("num_kv_heads") != 8 ||
@@ -67,7 +68,7 @@ void run_trace(const std::string& model_path, const std::string& hardware_path,
     throw std::invalid_argument("Target supports the single-layer Llama 3 8B preset on one device");
   SimulationConfig config{};
   config.precision = 2;  // The outer scheduler's KV tensor storage is 16 bit.
-  config.core_freq = 1000;
+  config.core_freq = std::max<uint64_t>(1, unsigned_field(hardware,"clock_hz") / 1000000);
   config.dram_req_size = 64;
   const auto max_sequence = unsigned_field(m, "max_seq_length");
   if (!max_sequence || max_sequence > 131072) throw std::invalid_argument("max_seq_length must be 1..131072");

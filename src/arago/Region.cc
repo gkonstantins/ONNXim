@@ -13,9 +13,19 @@ uint64_t unsigned_field(const json& j, const char* key) {
 }
 
 HardwareConfig hardware_config(const json& j) {
-  if (j.at("target") != "arago-dual-array" || unsigned_field(j, "clock_hz") != 1000000000ULL)
-    throw std::invalid_argument("This target uses one 1 GHz clock domain");
+  if (j.at("target") != "arago-dual-array")
+    throw std::invalid_argument("target must be arago-dual-array");
   HardwareConfig h;
+  h.clock_hz = unsigned_field(j, "clock_hz");
+  for (const char* key : {"array_input_bits", "array_output_bits"}) {
+    if (!j.contains(key)) continue;
+    const auto bits = unsigned_field(j,key);
+    if ((std::string(key) == "array_input_bits" && bits != 8 && bits != 16) ||
+        (std::string(key) == "array_output_bits" && bits != 16 && bits != 32))
+      throw std::invalid_argument("array_input_bits must be 8 or 16; array_output_bits must be 16 or 32");
+    if (std::string(key) == "array_input_bits") h.array_input_bits = bits;
+    else h.array_output_bits = bits;
+  }
   h.scratchpad_bytes = unsigned_field(j, "scratchpad_bytes");
   h.dma_bytes_per_cycle = unsigned_field(j, "dma_bytes_per_cycle");
   h.dma_setup = unsigned_field(j, "dma_setup");
@@ -57,6 +67,7 @@ HardwareConfig hardware_config(const json& j) {
     throw std::invalid_argument("tensor_shards must be 1, 2 or 4");
   if (h.pipeline_stages != 1 && h.pipeline_stages != 2 && h.pipeline_stages != 4)
     throw std::invalid_argument("pipeline_stages must be 1, 2 or 4");
+  Hardware validate(h);
   return h;
 }
 
@@ -104,6 +115,11 @@ json Region::run(LayerShape shape) const {
                  {"phase","unspecified"},{"batch",shape.batch},
                  {"queries",shape.queries},{"visible_context",shape.context},
                  {"layer",phase(metrics.layer)},{"attention",phase(metrics.attention)}};
+  // Preserve the frozen default record format. Nondefault runs carry units and
+  // native formats explicitly, so consumers cannot mistake cycles for ns.
+  if (hw.clock_hz != 1000000000ULL || hw.array_input_bits != 8 || hw.array_output_bits != 16)
+    record["hardware"] = {{"clock_hz",hw.clock_hz}, {"array_input_bits",hw.array_input_bits},
+                          {"array_output_bits",hw.array_output_bits}};
   if (hw.trace_panels) {
     if (schedule_ != AttentionSchedule::Streaming) throw std::invalid_argument("tile plan requires streaming");
     record["tile_plan"] = json::array();

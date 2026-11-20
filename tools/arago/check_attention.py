@@ -60,7 +60,16 @@ def pack_int8(x, dim, limit=127):
     return (x / step).round().clamp(-limit, limit), step
 
 
-def scale_native_tiles(dot, tile_rows):
+def validate_format(input_bits=8, output_bits=16, policy="scaled"):
+    if type(input_bits) is not int or input_bits not in (8,16):
+        raise ValueError("array_input_bits must be 8 or 16")
+    if type(output_bits) is not int or output_bits not in (16,32):
+        raise ValueError("array_output_bits must be 16 or 32")
+    if policy in ("exact4","a16exact") and (input_bits,output_bits)!=(8,16):
+        raise ValueError("exact4 and a16exact require the 8-bit input / 16-bit output digit interface")
+
+
+def scale_native_tiles(dot, tile_rows, output_bits=16):
     # FP32 exactly represents the INT8 products/sums at K<=128 with TF32 off.
     # Compress each native rectangular tile with a binary right shift. Round before
     # converting to the 16-bit accumulator interface, then restore its scale.
@@ -70,32 +79,32 @@ def scale_native_tiles(dot, tile_rows):
     tiles = aligned.reshape(*dot.shape[:-2], (rows + row_pad) // tile_rows, tile_rows,
                             (cols + col_pad) // 16, 16)
     max_abs = tiles.abs().amax(dim=(-3, -1), keepdim=True)
-    scale = torch.exp2(torch.ceil(torch.log2((max_abs / 32767).clamp_min(1))))
-    returned = (tiles / scale).round().to(torch.int16).float() * scale
+    scale = torch.exp2(torch.ceil(torch.log2((max_abs / ((1 << (output_bits-1))-1)).clamp_min(1))))
+    returned = (tiles / scale).round().to(torch.int16 if output_bits==16 else torch.int32).to(dot.dtype) * scale
     return returned.reshape(aligned.shape)[..., :rows, :cols]
 
 
-def pack_rows(dot):
+def pack_rows(dot, output_bits=16):
     """Process a batch of GQA query blocks, each flattened to Hgroup*Q rows."""
     blocks, rows, cols = dot.shape
     groups, edge = divmod(rows, 48)
     out = []
     if groups:
         slab = dot[:, :groups * 48].reshape(blocks * groups, 48, cols)
-        small = scale_native_tiles(slab[:, :16], 16)
-        large = scale_native_tiles(slab[:, 16:], 32)
+        small = scale_native_tiles(slab[:, :16], 16, output_bits)
+        large = scale_native_tiles(slab[:, 16:], 32, output_bits)
         out.append(torch.cat((small, large), dim=1).reshape(blocks, groups * 48, cols))
     if edge:
         tail = dot[:, groups * 48:]
         if edge <= 32:
-            out.append(scale_native_tiles(tail, 16 if edge <= 16 else 32))
+            out.append(scale_native_tiles(tail, 16 if edge <= 16 else 32, output_bits))
         else:
-            out.extend((scale_native_tiles(tail[:, :32], 32),
-                        scale_native_tiles(tail[:, 32:], 16)))
+            out.extend((scale_native_tiles(tail[:, :32], 32, output_bits),
+                        scale_native_tiles(tail[:, 32:], 16, output_bits)))
     return torch.cat(out, dim=1)
 
 
-def native_result(dot):
+def native_result(dot, output_bits=16):
     # Match the timing schedule: for each query block, flatten the four heads
     # sharing a KV head. A full 48-row group uses both physical arrays.
     heads, rows, cols = dot.shape
@@ -104,11 +113,11 @@ def native_result(dot):
     if full:
         blocks = dot[:, :full * QUERY_TILE].reshape(heads, full, QUERY_TILE, cols)
         flat = blocks.transpose(0, 1).reshape(full, heads * QUERY_TILE, cols)
-        scaled = pack_rows(flat).reshape(full, heads, QUERY_TILE, cols)
+        scaled = pack_rows(flat, output_bits).reshape(full, heads, QUERY_TILE, cols)
         out.append(scaled.transpose(0, 1).reshape(heads, full * QUERY_TILE, cols))
     if edge:
         flat = dot[:, full * QUERY_TILE:].reshape(1, heads * edge, cols)
-        out.append(pack_rows(flat).reshape(heads, edge, cols))
+        out.append(pack_rows(flat, output_bits).reshape(heads, edge, cols))
     return torch.cat(out, dim=1)
 
 
@@ -130,7 +139,10 @@ def a16_wide_dot(left, right):
     return result
 
 
-def native_dot(left, right, policy):
+def native_dot(left, right, policy, input_bits=8, output_bits=16):
+    validate_format(input_bits, output_bits, policy)
+    maximum = (1 << (output_bits-1))-1
+    minimum = -(1 << (output_bits-1))
     if policy == "a16exact":
         return a16_wide_dot(left,right).float()
     if policy == "exact4":
@@ -141,14 +153,15 @@ def native_dot(left, right, policy):
         def partial(a, b):
             return (a @ b).to(torch.int16).float()
         return 256*partial(ah,bh) + 16*(partial(ah,bl)+partial(al,bh)) + partial(al,bl)
-    dot = left @ right
+    # FP64 exactly accumulates signed INT16 products at the supported depths.
+    dot = left.double() @ right.double() if input_bits==16 else left @ right
     if policy == "fixedshift":
-        shift = max(0, math.ceil(math.log2(left.shape[-1]*127**2/32767)))
+        shift = max(0, math.ceil(math.log2(left.shape[-1]*((1 << (input_bits-1))-1)**2/maximum)))
         scale = 2**shift
-        return (dot/scale).round().clamp(-32768,32767)*scale
+        return (dot/scale).round().clamp(minimum,maximum)*scale
     if policy == "scaled":
-        return native_result(dot)
-    return dot.clamp(-32768,32767)
+        return native_result(dot, output_bits)
+    return dot.clamp(minimum,maximum)
 
 
 def normalize(scores, visible):
@@ -163,12 +176,15 @@ def exponent_delta(src, dest):
     return torch.exp(src - torch.where(torch.isfinite(dest), dest, 0.0))
 
 
-def run_group(q, k, v, positions, errors, policy="scaled"):
+def run_group(q, k, v, positions, errors, policy="scaled", input_bits=8, output_bits=16):
     """q=[four query heads, Q,128]; one shared k/v=[K,128] per KV group."""
+    validate_format(input_bits, output_bits, policy)
     key_positions = torch.arange(k.shape[0], device=k.device)
     visible = positions[:, None] >= key_positions
     reference = normalize(q @ k.T / math.sqrt(WIDTH), visible) @ v
-    limit = 11 if policy == "bounded" else 127  # safe at any native K <= 256
+    limit = (1 << (input_bits-1))-1
+    if policy == "bounded":
+        limit = min(limit, math.isqrt(((1 << (output_bits-1))-1)//256))
     if policy == "a16exact":
         limit = 32767
     qi, qs = pack_int8(q, -1, limit)
@@ -176,12 +192,12 @@ def run_group(q, k, v, positions, errors, policy="scaled"):
     vi, vs = pack_int8(v, (0, 1), limit)
 
     def scores(first, last):
-        return (native_dot(qi, ki[first:last].T, policy) * qs *
-                ks[first:last].T / math.sqrt(WIDTH))
+        return (native_dot(qi, ki[first:last].T, policy, input_bits, output_bits) * qs *
+                ks[first:last].T / math.sqrt(WIDTH)).float()
 
     def weighted_native(weights, first, last):
         pi, ps = pack_int8(weights, -1, limit)
-        return native_dot(pi, vi[first:last], policy) * ps * vs
+        return (native_dot(pi, vi[first:last], policy, input_bits, output_bits) * ps * vs).float()
 
     # The materialized schedule spills scores and normalized probabilities in
     # a selected A16 format. Score/PV matrix multiplies use the native policy.
@@ -327,7 +343,13 @@ def main():
     p.add_argument("--precision-policy", choices=("scaled","fixedshift","saturate","bounded","exact4","a16exact"), default="scaled")
     p.add_argument("--report-accuracy", action="store_true",
                    help="record native accuracy threshold failures for design comparisons")
+    p.add_argument("--array-input-bits", type=int, choices=(8,16), default=8)
+    p.add_argument("--array-output-bits", type=int, choices=(16,32), default=16)
     args = p.parse_args()
+    try:
+        validate_format(args.array_input_bits, args.array_output_bits, args.precision_policy)
+    except ValueError as error:
+        p.error(str(error))
     if min(args.batch, args.prompt, args.context) <= 0 or args.context < args.prompt:
         p.error("require batch > 0 and context >= prompt > 0")
     if args.checkpoint and args.device != "cuda":
@@ -360,7 +382,7 @@ def main():
                 outputs = [[], [], []]
                 for g in range(KV_HEADS):
                     group_outputs = run_group(q[g*4:g*4+4, first:end].float(), k[g, :end].float(),
-                                              v[g, :end].float(), pos, records[phase], args.precision_policy)
+                                              v[g, :end].float(), pos, records[phase], args.precision_policy, args.array_input_bits, args.array_output_bits)
                     for out, chunk in zip(outputs, group_outputs):
                         out.append(chunk)
                 if layer:
@@ -373,7 +395,7 @@ def main():
                 end = min(args.context, KEY_TILE + 1)
                 query = q[:4, :1].expand(-1, 3, -1).float()
                 for output in run_group(query, k[0, :end].float(), v[0, :end].float(),
-                                        pos, records["mask_edge"], args.precision_policy):
+                                        pos, records["mask_edge"], args.precision_policy, args.array_input_bits, args.array_output_bits):
                     if output[:, 0].count_nonzero().item():
                         raise AssertionError("fully masked row should be exactly zero")
     results = {phase: data.report() for phase, data in records.items()}
@@ -401,6 +423,9 @@ def main():
         report["input_kind"] = "user-supplied text rows (teacher-forced)"
     if device.type == "cuda":
         report["peak_torch_allocated_mib_including_checkpoint_load"] = torch.cuda.max_memory_allocated() / 2**20
+    if (args.array_input_bits,args.array_output_bits)!=(8,16):
+        report["native_interface"] = dict(array_input_bits=args.array_input_bits, array_output_bits=args.array_output_bits)
+        report["native_policy"] = f"Signed {args.array_input_bits}-bit operands, signed {args.array_output_bits}-bit returns; {args.precision_policy}; FP16 score/probability spills and FP32 accumulation"
     encoded = json.dumps(report, indent=2, allow_nan=False)
     if args.json:
         args.json.write_text(encoded + "\n", encoding="utf-8")

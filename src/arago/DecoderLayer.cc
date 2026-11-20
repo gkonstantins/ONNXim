@@ -116,8 +116,8 @@ Cycle panel_gemm(Hardware& h, Count rows, Count columns, unsigned depth,
   return ready;
 }
 
-// Signed native INT8 panels, INT16 calibrated partial return, widening/scale
-// restoration in SIMD. A16 is the stored model input, W8 the stored weights.
+// Native signed panels and partial returns use the configured interface widths.
+// A16 is the stored model input, W8 the stored weights, independently of the ISA.
 // DMA counts compact edge payloads; SIMD zero-fills padded activation lanes.
 // DRAM panels are assumed packed/blocked for the selected output slab.
 PhaseMetrics dense_slab(Count m, unsigned n, unsigned k, const HardwareConfig& cfg) {
@@ -125,28 +125,31 @@ PhaseMetrics dense_slab(Count m, unsigned n, unsigned k, const HardwareConfig& c
   const auto padded = rows_for(m).padded();
   const Count outputs = padded * n;
   const Count depth_max = std::min(k, 256u);
-  h.reserve(2*m*depth_max + padded*depth_max + n*depth_max + 6*outputs);
+  const Count ib = cfg.input_bytes(), ob = cfg.output_bytes();
+  h.reserve(2*m*depth_max + ib*(padded+n)*depth_max + (ob+4)*outputs +
+            (ib == 1 ? 0 : n*depth_max));
   Cycle ready = 0;
   for (unsigned offset = 0; offset < k; offset += 256) {
     const auto depth = std::min(256u, k-offset);
     const auto a = h.read(2*m*depth, ready);
     const auto w = h.read(Count(n)*depth, ready);
-    const auto packed = h.vector((2*m+padded)*depth, a);
+    auto packed = h.vector((2*m+ib*padded)*depth, a);
+    if (ib != 1) packed = h.vector((1+ib)*n*depth, std::max(w,packed));
     auto ready_inputs = std::max(w,packed);
     Cycle done;
     if (cfg.transpose_decode && m <= 16) {
       // Transpose the two packed panels, compute Y^T, transpose partials back.
-      const Count transposed = (m+n)*depth;
-      h.reserve(transposed + 2*outputs);
+      const Count transposed = ib*(m+n)*depth;
+      h.reserve(transposed + ob*outputs);
       ready_inputs = h.vector(2*transposed,ready_inputs);
       done = panel_gemm(h,n,m,depth,ready_inputs,cfg,true);
-      done = h.vector(4*outputs,done);
-      h.release(transposed + 2*outputs);
+      done = h.vector(2*ob*outputs,done);
+      h.release(transposed + ob*outputs);
     } else {
       done = panel_gemm(h,m,n,depth,ready_inputs,cfg,true);
     }
     // Read native partial, and previous wide sum on subsequent passes.
-    ready = h.vector(outputs * (offset == 0 ? 6 : 10), done);
+    ready = h.vector(outputs * (ob + (offset == 0 ? 4 : 8)), done);
   }
   ready = h.vector((4*padded + 2*m)*n, ready);
   h.write(2*m*n, ready);
@@ -218,11 +221,12 @@ PhaseMetrics vector_rows(Count rows, unsigned width, VectorOp op, const Hardware
 
 // Score and probability panels have packed [KV block][query head/row][key]
 // layout in DRAM. Each transfer below is one contiguous payload descriptor.
-// Q/K/V packing uses three SRAM bytes/actual lane (A16 read, INT8 write).
+// Q/K/V packing reads A16 and writes the configured native operand width.
 // K/V are shared by the four GQA heads, flattened along the query row axis.
 PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algorithm,
                              const HardwareConfig& cfg, unsigned first, std::vector<BlockEvent>* plan) {
   Hardware h(cfg);
+  const Count ib = cfg.input_bytes(), ob = cfg.output_bytes();
   const auto kv_block = cfg.key_tile;
   const Count rows = (cfg.share_kv ? group : 1) * q;
   const Count padded = rows_for(rows).padded();
@@ -241,14 +245,15 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
   h.trace_label("Query load and pack");
   if (algorithm == AttentionSchedule::Naive) {
     // Pass 1: QK. Scores are 16-bit; compact spills omit padding lanes.
-    const Count qk_space = 2*qb + padded*head_dim + 3*kv + 2*score_scratch;
+    const Count qk_space = 2*qb + ib*padded*head_dim + (2+ib)*kv + ob*score_scratch;
     h.reserve(qk_space);
-    done = h.vector(2*qb+padded*head_dim, h.read(2*qb));
+    done = h.vector(2*qb+ib*padded*head_dim, h.read(2*qb));
     for (Count b = 0; b < blocks; ++b) {
       const auto n = keys_at(b);
       h.trace_label("QK and score spill", b);
-      auto packed = h.vector(3*n*head_dim, h.read(2*n*head_dim, done));
+      auto packed = h.vector((2+ib)*n*head_dim, h.read(2*n*head_dim, done));
       done = panel_gemm(h, rows, n, head_dim, packed,cfg);
+      if (ob != 2) done = h.vector((ob+2)*rows*n, done); // native return -> FP16 spill
       done = h.write(2*rows*n, done);
     }
     h.release(qk_space);
@@ -272,16 +277,16 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
 
     // Pass 3: normalized P16 -> P8; V16 -> V8. Native PV partials are
     // widened before summation in the running FP32 output.
-    const Count pv_space = 3*kv + 3*score_scratch + 6*value_scratch;
+    const Count pv_space = (2+ib)*kv + (2+ib)*score_scratch + (ob+4)*value_scratch;
     h.reserve(pv_space);
     for (Count b = 0; b < blocks; ++b) {
       const auto n = keys_at(b);
       h.trace_label("PV and accumulation", b);
       const auto v = h.read(2*n*head_dim, done);
       const auto p = h.read(2*rows*n, done);
-      const auto packed = h.vector((2*rows+padded)*n + 3*n*head_dim, std::max(p,v));
+      const auto packed = h.vector((2*rows+ib*padded)*n + (2+ib)*n*head_dim, std::max(p,v));
       done = panel_gemm(h, rows, head_dim, n, packed,cfg);
-      done = h.vector(value_scratch*(b == 0 ? 6 : 10), done);
+      done = h.vector(value_scratch*(ob+(b == 0 ? 4 : 8)), done);
     }
     h.trace_label("Attention output");
     done = h.vector(4*value_scratch+2*qb, done);
@@ -290,34 +295,34 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
   } else if (algorithm == AttentionSchedule::RowBlocked) {
     // Keep all visible scores for a small query panel, normalize in place,
     // then consume probability slices. One reusable K or V staging slot.
-    h.reserve(2*qb + padded*head_dim + 2*rows*prefix + 3*kv +
-              3*score_scratch + 6*value_scratch + 8*rows);
-    done = h.vector(2*qb+padded*head_dim,h.read(2*qb));
+    h.reserve(2*qb + ib*padded*head_dim + 2*rows*prefix + (2+ib)*kv +
+              (ob+ib)*score_scratch + (ob+4)*value_scratch + 8*rows);
+    done = h.vector(2*qb+ib*padded*head_dim,h.read(2*qb));
     for (Count b=0;b<blocks;++b) {
       const auto n=keys_at(b);
       h.trace_label("QK and score staging", b);
-      const auto packed=h.vector(3*n*head_dim,h.read(2*n*head_dim,done));
+      const auto packed=h.vector((2+ib)*n*head_dim,h.read(2*n*head_dim,done));
       done=panel_gemm(h,rows,n,head_dim,packed,cfg);
-      done=h.vector(2*(padded+rows)*n,done);
+      done=h.vector((ob*padded+2*rows)*n,done);
     }
     h.trace_label("Row softmax");
     done=h.vector(8*rows*prefix,done);
     for (Count b=0;b<blocks;++b) {
       const auto n=keys_at(b);
       h.trace_label("PV and accumulation", b);
-      const auto packed=h.vector((2*rows+padded)*n+3*n*head_dim,h.read(2*n*head_dim,done));
+      const auto packed=h.vector((2*rows+ib*padded)*n+(2+ib)*n*head_dim,h.read(2*n*head_dim,done));
       done=panel_gemm(h,rows,head_dim,n,packed,cfg);
-      done=h.vector(value_scratch*(b ? 10 : 6),done);
+      done=h.vector(value_scratch*(ob+(b ? 8 : 4)),done);
     }
     h.trace_label("Attention output");
     h.write(2*qb,h.vector(4*value_scratch+2*qb,done));
   } else {
     // Double-buffered K/V: prefetch b+1 while processing b. The slot for
     // b+2 is only available after b's PV has drained and its update is done.
-    const Count allocation = 2*qb + padded*head_dim + (cfg.double_buffer ? 2 : 1)*6*kv +
-                             7*score_scratch + 6*value_scratch + 8*rows;
+    const Count allocation = 2*qb + ib*padded*head_dim + (cfg.double_buffer ? 2 : 1)*2*(2+ib)*kv +
+                             (ob+4+ib)*score_scratch + (ob+4)*value_scratch + 8*rows;
     h.reserve(allocation);
-    const auto query_ready = h.vector(2*qb+padded*head_dim, h.read(2*qb));
+    const auto query_ready = h.vector(2*qb+ib*padded*head_dim, h.read(2*qb));
     auto load = [&](Count b, Cycle slot_free) {
       const auto bytes = 2*keys_at(b)*head_dim;
       h.trace_label("K prefetch", b);
@@ -331,18 +336,18 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       const Cycle prior_done = done;
       Cycle next = cfg.double_buffer && b+1 < blocks ? load(b+1, done) : 0;
       h.trace_label("KV packing", b);
-      const auto packed = h.vector(6*n*head_dim, ready);
+      const auto packed = h.vector(2*(2+ib)*n*head_dim, ready);
       h.trace_label("QK", b);
       const auto scores = panel_gemm(h, rows, n, head_dim, std::max({packed, query_ready, done}),cfg);
       // SIMD reads logits and builds normalized-to-local-max INT8 weights;
       // FP32 temporaries allow two passes over exp values. m/l are FP32.
       h.trace_label("Online softmax", b);
-      const auto weights = h.vector((2*rows + 8*rows + padded)*n + 16*rows, scores);
+      const auto weights = h.vector((ob*rows + 8*rows + ib*padded)*n + 16*rows, scores);
       h.trace_label("PV", b);
       const auto values = panel_gemm(h, rows, head_dim, n, weights,cfg);
       // Fused rescale of old numerator and addition of new widened partial.
       h.trace_label("Rescale and accumulate", b);
-      done = h.vector(value_scratch*(b == 0 ? 6 : 10), values);
+      done = h.vector(value_scratch*(ob+(b == 0 ? 4 : 8)), values);
       if (plan) plan->push_back({first,q,static_cast<unsigned>(b*kv_block),
           static_cast<unsigned>(n),static_cast<unsigned>(cfg.double_buffer ? b%2 : 0),
           slot_ready,ready,scores,values,done});

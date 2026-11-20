@@ -92,6 +92,39 @@ The output records maximum absolute error, RMS error, and relative RMS aggregate
 
 ## Shared engine and Carlota
 
+### Native formats and clock
+
+The hardware JSON accepts `array_input_bits` (8 or 16), `array_output_bits`
+(16 or 32), and integer `clock_hz` (1 through 1,000,000,000,000). The canonical
+preset explicitly uses the assignment defaults: 8, 16, and 1,000,000,000.
+Old presets without width fields retain the 8/16 defaults. Rates remain
+bytes per **device cycle**, and all configured latencies remain cycles.
+
+Widths change array input traffic, partial-output drain, packed SRAM buffers,
+SIMD packing/widening and the attention numerical oracle. Stored model data
+remain W8 weights and A16 activations/KV; changing the native interface does
+not change that storage contract. Array geometry and nominal MACs per cycle
+remain fixed. This is a port/format experiment, not an electrical estimate of
+how a wider multiplier changes frequency, area or power.
+
+`scaled`, `fixedshift`, `bounded` and `saturate` accept all supported width pairs.
+`exact4` and `a16exact` are explicitly defined digit algorithms on the 8/16
+interface; other interface widths with these policies are rejected. The
+numerical checker accepts `--array-input-bits` and `--array-output-bits`.
+
+For example, a full copy of the preset may replace these three fields:
+
+```json
+{"array_input_bits": 16, "array_output_bits": 32, "clock_hz": 750000000}
+```
+
+Pass the full JSON file to the standalone CLI's `--config`. Nondefault output
+records include a `hardware` object identifying the clock and native widths.
+Durations in seconds are `cycles / clock_hz`; scheduler arrival times in the
+CSV remain cycle offsets. The Python study tools convert device cycles before
+combining them with host nanoseconds. Default records preserve the frozen
+format and values, and do not add the optional hardware object.
+
 The focused build produces `build/arago/cmake/arago/libarago_device.so`. The CLI
 uses ONNXim admission and retirement around `arago::Region::run`. Carlota calls
 the same region through the C ABI in `src/arago/Binding.h`. ABI version 1
