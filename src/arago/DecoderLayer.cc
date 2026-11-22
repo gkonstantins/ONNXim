@@ -232,7 +232,8 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
   const Count padded = rows_for(rows).padded();
   const Count qb = rows * head_dim;
   const unsigned max_keys = std::min(kv_block, prefix);
-  const Count padded_keys = 16 * ceil_div(max_keys, 16);
+  const unsigned compute_keys = cfg.hybrid_kv ? 128 : kv_block;
+  const Count padded_keys = 16 * ceil_div(std::min(max_keys,compute_keys), 16);
   const Count score_scratch = padded * padded_keys;
   const Count value_scratch = padded * head_dim;
   const Count kv = Count(max_keys)*head_dim;
@@ -337,20 +338,25 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       Cycle next = cfg.double_buffer && b+1 < blocks ? load(b+1, done) : 0;
       h.trace_label("KV packing", b);
       const auto packed = h.vector(2*(2+ib)*n*head_dim, ready);
-      h.trace_label("QK", b);
-      const auto scores = panel_gemm(h, rows, n, head_dim, std::max({packed, query_ready, done}),cfg);
-      // SIMD reads logits and builds normalized-to-local-max INT8 weights;
-      // FP32 temporaries allow two passes over exp values. m/l are FP32.
-      h.trace_label("Online softmax", b);
-      const auto weights = h.vector((ob*rows + 8*rows + ib*padded)*n + 16*rows, scores);
-      h.trace_label("PV", b);
-      const auto values = panel_gemm(h, rows, head_dim, n, weights,cfg);
-      // Fused rescale of old numerator and addition of new widened partial.
-      h.trace_label("Rescale and accumulate", b);
-      done = h.vector(value_scratch*(ob+(b == 0 ? 4 : 8)), values);
+      Cycle first_scores = 0, last_pv = 0;
+      for (Count offset = 0; offset < n; offset += compute_keys) {
+        const Count width = std::min<Count>(compute_keys,n-offset);
+        h.trace_label("QK", b);
+        const auto scores = panel_gemm(h, rows, width, head_dim, std::max({packed, query_ready, done}),cfg);
+        if (offset == 0) first_scores = scores;
+        // SIMD reads logits and builds normalized-to-local-max INT8 weights;
+        // FP32 temporaries allow two passes over exp values. m/l are FP32.
+        h.trace_label("Online softmax", b);
+        const auto weights = h.vector((ob*rows + 8*rows + ib*padded)*width + 16*rows, scores);
+        h.trace_label("PV", b);
+        last_pv = panel_gemm(h, rows, head_dim, width, weights,cfg);
+        // Fused rescale of old numerator and addition of new widened partial.
+        h.trace_label("Rescale and accumulate", b);
+        done = h.vector(value_scratch*(ob+(b == 0 && offset == 0 ? 4 : 8)), last_pv);
+      }
       if (plan) plan->push_back({first,q,static_cast<unsigned>(b*kv_block),
           static_cast<unsigned>(n),static_cast<unsigned>(cfg.double_buffer ? b%2 : 0),
-          slot_ready,ready,scores,values,done});
+          slot_ready,ready,first_scores,last_pv,done});
       slot_ready = cfg.double_buffer ? prior_done : done;
       ready = !cfg.double_buffer && b+1 < blocks ? load(b+1,done) : next;
     }

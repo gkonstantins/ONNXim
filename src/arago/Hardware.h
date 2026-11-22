@@ -32,6 +32,7 @@ struct HardwareConfig {
   bool share_kv = true;
   unsigned mac_percent = 100;
   unsigned pipeline_stages = 1, tensor_shards = 1, query_tile = 32, key_tile = 128;
+  bool hybrid_kv = false;  // Fetch 256 keys, reduce in 128-key panels.
   bool trace_engines = false;
   bool trace_panels = false, exact_digits = false, exact_a16 = false, model_endpoints = false;
   Cycle dma_setup = 200;

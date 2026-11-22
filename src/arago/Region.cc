@@ -46,6 +46,7 @@ HardwareConfig hardware_config(const json& j) {
   h.double_buffer = j.value("double_buffer", true);
   h.trace_engines = j.contains("engine_window");
   h.trace_panels = j.value("trace_panels",false);
+  h.hybrid_kv = j.value("hybrid_kv",false);
   h.share_kv = j.value("share_kv", true);
   h.model_endpoints = j.value("model_endpoints", false);
   const auto policy = j.value("precision_policy", std::string("scaled"));
@@ -88,6 +89,8 @@ Region::Region(const json& config, const std::string& algorithm)
   else if (algorithm == "rowblocked") schedule_ = AttentionSchedule::RowBlocked;
   else if (algorithm == "flashattention" || algorithm == "streaming") schedule_ = AttentionSchedule::Streaming;
   else throw std::invalid_argument("attention must be naive, rowblocked, flashattention, or streaming");
+  if (hardware_.hybrid_kv && (hardware_.key_tile != 256 || schedule_ != AttentionSchedule::Streaming))
+    throw std::invalid_argument("hybrid_kv requires FlashAttention and key_tile=256");
 }
 
 json Region::run(LayerShape shape) const {
@@ -115,6 +118,8 @@ json Region::run(LayerShape shape) const {
                  {"phase","unspecified"},{"batch",shape.batch},
                  {"queries",shape.queries},{"visible_context",shape.context},
                  {"layer",phase(metrics.layer)},{"attention",phase(metrics.attention)}};
+  if (hw.key_tile != 128 || hw.hybrid_kv)
+    record["kv_tile"] = {{"dma_keys",hw.key_tile},{"compute_keys",hw.hybrid_kv ? 128u : hw.key_tile}};
   // Preserve the frozen default record format. Nondefault runs carry units and
   // native formats explicitly, so consumers cannot mistake cycles for ns.
   if (hw.clock_hz != 1000000000ULL || hw.array_input_bits != 8 || hw.array_output_bits != 16)

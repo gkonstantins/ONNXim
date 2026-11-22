@@ -176,7 +176,7 @@ def exponent_delta(src, dest):
     return torch.exp(src - torch.where(torch.isfinite(dest), dest, 0.0))
 
 
-def run_group(q, k, v, positions, errors, policy="scaled", input_bits=8, output_bits=16):
+def run_group(q, k, v, positions, errors, policy="scaled", input_bits=8, output_bits=16, compute_keys=KEY_TILE):
     """q=[four query heads, Q,128]; one shared k/v=[K,128] per KV group."""
     validate_format(input_bits, output_bits, policy)
     key_positions = torch.arange(k.shape[0], device=k.device)
@@ -210,8 +210,8 @@ def run_group(q, k, v, positions, errors, policy="scaled", input_bits=8, output_
         peak = torch.full_like(reference[..., :1], -torch.inf)
         mass = torch.zeros_like(peak)
         weighted = torch.zeros_like(reference)
-        for first in range(0, k.shape[0], KEY_TILE):
-            last = min(first + KEY_TILE, k.shape[0])
+        for first in range(0, k.shape[0], compute_keys):
+            last = min(first + compute_keys, k.shape[0])
             mask = visible[:, first:last]
             if native:
                 naive += weighted_native(probabilities[..., first:last], first, last)
@@ -345,7 +345,10 @@ def main():
                    help="record native accuracy threshold failures for design comparisons")
     p.add_argument("--array-input-bits", type=int, choices=(8,16), default=8)
     p.add_argument("--array-output-bits", type=int, choices=(16,32), default=16)
+    p.add_argument("--tile", choices=("128","256","hybrid"), default="128",
+                   help="KV fetch/compute grouping; hybrid fetches 256 and computes 128")
     args = p.parse_args()
+    compute_keys = 256 if args.tile == "256" else 128
     try:
         validate_format(args.array_input_bits, args.array_output_bits, args.precision_policy)
     except ValueError as error:
@@ -382,7 +385,7 @@ def main():
                 outputs = [[], [], []]
                 for g in range(KV_HEADS):
                     group_outputs = run_group(q[g*4:g*4+4, first:end].float(), k[g, :end].float(),
-                                              v[g, :end].float(), pos, records[phase], args.precision_policy, args.array_input_bits, args.array_output_bits)
+                                              v[g, :end].float(), pos, records[phase], args.precision_policy, args.array_input_bits, args.array_output_bits, compute_keys)
                     for out, chunk in zip(outputs, group_outputs):
                         out.append(chunk)
                 if layer:
@@ -392,10 +395,10 @@ def main():
                     records[phase].add("layer_native_online_vs_native_materialized", online, naive)
             if user == 0:
                 pos = torch.tensor([-1, 0, min(2, args.context - 1)], device=device)
-                end = min(args.context, KEY_TILE + 1)
+                end = min(args.context, compute_keys + 1)
                 query = q[:4, :1].expand(-1, 3, -1).float()
                 for output in run_group(query, k[0, :end].float(), v[0, :end].float(),
-                                        pos, records["mask_edge"], args.precision_policy, args.array_input_bits, args.array_output_bits):
+                                        pos, records["mask_edge"], args.precision_policy, args.array_input_bits, args.array_output_bits, compute_keys):
                     if output[:, 0].count_nonzero().item():
                         raise AssertionError("fully masked row should be exactly zero")
     results = {phase: data.report() for phase, data in records.items()}
@@ -403,7 +406,8 @@ def main():
     report = {"source": args.checkpoint.resolve().name if layer else "seeded synthetic BF16 Q/K/V",
               "torch": torch.__version__, "device": torch.cuda.get_device_name() if device.type == "cuda" else "cpu",
               "batch": args.batch, "prompt": args.prompt, "visible_decode_context": args.context,
-              "kv_groups": KV_HEADS, "query_heads": QUERY_HEADS, "head_dim": WIDTH, "key_tile": KEY_TILE,
+              "kv_groups": KV_HEADS, "query_heads": QUERY_HEADS, "head_dim": WIDTH, "key_tile": compute_keys,
+              **({"dma_keys":256,"tile":args.tile} if args.tile != "128" else {}),
               "native_policy": ("Q/K signed int8 per row; V signed int8 per KV group; PV weights packed per row "
                                 "per key block. Each 48-row group uses 16x16 and 32x16 output tiles with "
                                 "independent INT16 power-of-two scales. Naive spills FP16 scores and "
