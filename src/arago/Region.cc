@@ -52,6 +52,9 @@ HardwareConfig hardware_config(const json& j) {
   const auto policy = j.value("precision_policy", std::string("scaled"));
   if (policy != "scaled" && policy != "fixedshift" && policy != "exact4" && policy != "a16exact" && policy != "bounded" && policy != "saturate")
     throw std::invalid_argument("unknown precision_policy");
+  h.mlp_pingpong = j.value("mlp_pingpong",false);
+  if (h.mlp_pingpong && (policy != "fixedshift" || h.input_bytes() != 1 || h.output_bytes() != 2))
+    throw std::invalid_argument("mlp_pingpong requires fixedshift and 8/16-bit array ports");
   h.exact_a16 = policy == "a16exact";
   h.exact_digits = policy == "exact4" || h.exact_a16;
   for (const char* key : {"pipeline_stages","tensor_shards","query_tile","key_tile","mac_percent"}) {
@@ -118,6 +121,7 @@ json Region::run(LayerShape shape) const {
                  {"phase","unspecified"},{"batch",shape.batch},
                  {"queries",shape.queries},{"visible_context",shape.context},
                  {"layer",phase(metrics.layer)},{"attention",phase(metrics.attention)}};
+  if (hw.mlp_pingpong) record["mlp_pingpong"] = true;
   if (hw.key_tile != 128 || hw.hybrid_kv)
     record["kv_tile"] = {{"dma_keys",hw.key_tile},{"compute_keys",hw.hybrid_kv ? 128u : hw.key_tile}};
   // Preserve the frozen default record format. Nondefault runs carry units and
