@@ -183,7 +183,7 @@ PhaseMetrics projection_slab(unsigned rows, unsigned channels, unsigned depth, b
   // Prefill streams raw A16 in two slots into one reusable packed panel.
   const Count inputs = decode ? 18ULL*depth : (4*rows+padded)*256;
   const Count workspace = inputs + 2ULL*channels*256 + 2*returns + 4*sums + 2*outputs;
-  if (decode && workspace > 676*1024) throw std::logic_error("decode projection slab exceeds budget");
+  // Width selection enforces the decode slab budget; reserve checks physical SRAM.
   h.reserve(workspace);
   Cycle input_ready = 0;
   if (decode) {
@@ -221,8 +221,11 @@ PhaseMetrics projection(const LayerShape& shape, unsigned channels, unsigned dep
     unsigned width = 640;
     if (decode) {
       // A full 48-channel group gives 32 rows to one array and 16 to the other.
-      const unsigned groups = (676*1024-18*depth)/(48*(512+32+6*m));
-      width = std::min(channel_limit,48*groups);
+      const Count budget = std::min<Count>(cfg.scratchpad_bytes,(cfg.optimized_decode ? 960 : 676)*1024);
+      const Count inputs = 18ULL*depth;
+      const unsigned groups = budget > inputs ? (budget-inputs)/(48*(512+32+6*m)) : 0;
+      if (!groups) throw std::length_error("decode projection panel exceeds scratchpad budget");
+      width = cfg.optimized_decode ? 48*groups : std::min(channel_limit,48*groups);
     }
     PhaseMetrics row_group;
     for (unsigned j=0; j<channels;) {
@@ -291,10 +294,11 @@ PhaseMetrics vector_rows(Count rows, unsigned width, VectorOp op, const Hardware
 // Q/K/V packing reads A16 and writes the configured native operand width.
 // K/V are shared by the four GQA heads, flattened along the query row axis.
 PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algorithm,
-                             const HardwareConfig& cfg, unsigned first, std::vector<BlockEvent>* plan) {
+                             const HardwareConfig& cfg, unsigned first, bool decode, std::vector<BlockEvent>* plan) {
   Hardware h(cfg);
   const Count ib = cfg.input_bytes(), ob = cfg.output_bytes();
   const auto kv_block = cfg.key_tile;
+  const bool transpose = cfg.optimized_decode && decode;
   const Count rows = (cfg.share_kv ? group : 1) * q;
   const Count padded = rows_for(rows).padded();
   const Count qb = rows * head_dim;
@@ -409,14 +413,22 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       for (Count offset = 0; offset < n; offset += compute_keys) {
         const Count width = std::min<Count>(compute_keys,n-offset);
         h.trace_label("QK", b);
-        const auto scores = panel_gemm(h, rows, width, head_dim, std::max({packed, query_ready, done}),cfg);
+        // K @ Q^T distributes independent keys over the two array heights.
+        // Keep a short unaligned tail in the original orientation to avoid K padding.
+        const Cycle ready_qk = std::max({packed, query_ready, done});
+        const auto scores = transpose && width % 16 == 0
+            ? native_panel(h,width,rows,head_dim,ready_qk)
+            : panel_gemm(h,rows,width,head_dim,ready_qk,cfg);
         if (offset == 0) first_scores = scores;
         // SIMD reads logits and builds normalized-to-local-max INT8 weights;
         // FP32 temporaries allow two passes over exp values. m/l are FP32.
         h.trace_label("Online softmax", b);
         const auto weights = h.vector((ob*rows + 8*rows + ib*padded)*width + 16*rows, scores);
         h.trace_label("PV", b);
-        last_pv = panel_gemm(h, rows, head_dim, width, weights,cfg);
+        // V^T @ P^T distributes independent value channels. SIMD reads the
+        // strided return while rescaling the same per-head numerator.
+        last_pv = transpose ? native_panel(h,head_dim,rows,width,weights)
+                            : panel_gemm(h,rows,head_dim,width,weights,cfg);
         // Fused rescale of old numerator and addition of new widened partial.
         h.trace_label("Rescale and accumulate", b);
         done = h.vector(value_scratch*(ob+(b == 0 && offset == 0 ? 4 : 8)), last_pv);
@@ -474,7 +486,7 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
     // are replayed exactly; distinct requests own distinct caches.
     auto panel_config = config;
     panel_config.trace_engines = config.trace_engines && first+q == shape.queries;
-    append(out.attention, attention_group(q, past+first+q, schedule, panel_config,first,
+    append(out.attention, attention_group(q, past+first+q, schedule, panel_config,first,shape.queries == 1,
            config.trace_panels ? &out.tile_plan : nullptr),
            Count(shape.batch)*kv_heads/tp*(config.share_kv ? 1 : group));
   }
@@ -492,7 +504,7 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
   return out;
 }
 
-// Replicated embedding and vocabulary head; only last-position logits are needed.
+// Replicated embedding; each tensor rank scans its own last-position logits.
 PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& cfg, Cycle& embedding,
                            OperatorProfile* profile) {
   PhaseMetrics result;
@@ -504,18 +516,20 @@ PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& cfg, C
   record_phase(result,profile,"embedding",metrics(embed),Count(shape.batch)*shape.queries);
   embedding = result.cycles;
   record_phase(result,profile,"final_norm",vector_rows(shape.batch,hidden,VectorOp::Norm,cfg));
+  const bool shard_vocab = cfg.optimized_decode && cfg.tensor_shards > 1;
+  const unsigned vocabulary = 128256 / (shard_vocab ? cfg.tensor_shards : 1);
   const LayerShape last_position{shape.batch, 1, shape.context};
   record_phase(result, profile, "lm_head",
-               projection(last_position, 128256, hidden, cfg.projection_pingpong, cfg));
-  // Greedy argmax over A16 logits in SRAM-sized chunks, one INT32 id per user.
+               projection(last_position, vocabulary, hidden, cfg.projection_pingpong, cfg));
+  // Each shard exports its best A16 score and INT32 local id per user.
   Hardware argmax(cfg);
   argmax.reserve(2*16384+16);
   t = 0;
-  for (unsigned offset=0; offset<128256; offset+=16384) {
-    const Count bytes = 2*std::min(16384u,128256-offset);
+  for (unsigned offset=0; offset<vocabulary; offset+=16384) {
+    const Count bytes = 2*std::min(16384u,vocabulary-offset);
     t = argmax.vector(bytes+16,argmax.read(bytes,t));
   }
-  argmax.write(4,t);
+  argmax.write(shard_vocab ? 6 : 4,t);
   record_phase(result,profile,"argmax",metrics(argmax),shape.batch);
   return result;
 }

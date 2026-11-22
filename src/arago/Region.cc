@@ -54,6 +54,9 @@ HardwareConfig hardware_config(const json& j) {
     throw std::invalid_argument("unknown precision_policy");
   h.mlp_pingpong = j.value("mlp_pingpong",false);
   h.projection_pingpong = j.value("projection_pingpong",h.mlp_pingpong);
+  h.optimized_decode = j.value("optimized_decode",h.mlp_pingpong && h.projection_pingpong);
+  if (h.optimized_decode && !(h.mlp_pingpong && h.projection_pingpong))
+    throw std::invalid_argument("optimized_decode requires double-buffered fixedshift projections");
   if ((h.mlp_pingpong || h.projection_pingpong) && (policy != "fixedshift" || h.input_bytes() != 1 || h.output_bytes() != 2))
     throw std::invalid_argument("double-buffered projections require fixedshift and 8/16-bit array ports");
   h.exact_a16 = policy == "a16exact";
@@ -113,7 +116,10 @@ json Region::run(LayerShape shape) const {
   // and a conservative full-layer workspace allowance (FFN, scores, hidden).
   const uint64_t tokens = uint64_t(shape.batch)*shape.queries;
   const uint64_t local_layers = 32/hw.pipeline_stages;
-  const uint64_t endpoint_weights = (hw.pipeline_stages == 1 ? 2ULL : 1ULL)*128256*4096;
+  constexpr uint64_t embedding_weights = 128256ULL*4096;
+  const auto head_weights = embedding_weights / (hw.optimized_decode ? hw.tensor_shards : 1);
+  // When endpoints reside on different pipeline stages the embedding is larger.
+  const auto endpoint_weights = embedding_weights + (hw.pipeline_stages == 1 ? head_weights : 0);
   const uint64_t projection_weights = 2ULL*4096*4096 + 2ULL*4096*1024 + 3ULL*4096*14336;
   const uint64_t matrices = endpoint_weights + local_layers*
       (projection_weights/hw.tensor_shards + 2ULL*4096*2) + 4096*2;
@@ -127,6 +133,7 @@ json Region::run(LayerShape shape) const {
                  {"phase","unspecified"},{"batch",shape.batch},
                  {"queries",shape.queries},{"visible_context",shape.context},
                  {"layer",phase(metrics.layer)},{"attention",phase(metrics.attention)}};
+  if (hw.optimized_decode) record["optimized_decode"] = true;
   if (hw.projection_pingpong) record["projection_pingpong"] = true;
   if (hw.mlp_pingpong) record["mlp_pingpong"] = true;
   // An absent kv_tile denotes 128/128 in the frozen record format.

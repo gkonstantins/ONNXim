@@ -34,6 +34,7 @@ struct HardwareConfig {
   unsigned pipeline_stages = 1, tensor_shards = 1, query_tile = 32, key_tile = 256;
   bool mlp_pingpong = false;
   bool projection_pingpong = false;
+  bool optimized_decode = false;
   bool hybrid_kv = false;  // Fetch 256 keys, reduce in 128-key panels.
   bool trace_engines = false;
   bool trace_panels = false, exact_digits = false, exact_a16 = false, model_endpoints = false;
