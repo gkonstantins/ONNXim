@@ -21,7 +21,7 @@ WIDTH = 128
 QUERY_HEADS = 32
 KV_HEADS = 8
 QUERY_TILE = 32
-KEY_TILE = 128
+KEY_TILE = 256
 
 
 def error_stats(actual, expected):
@@ -345,7 +345,7 @@ def main():
                    help="record native accuracy threshold failures for design comparisons")
     p.add_argument("--array-input-bits", type=int, choices=(8,16), default=8)
     p.add_argument("--array-output-bits", type=int, choices=(16,32), default=16)
-    p.add_argument("--tile", choices=("128","256","hybrid"), default="128",
+    p.add_argument("--tile", choices=("128","256","hybrid"), default=str(KEY_TILE),
                    help="KV fetch/compute grouping; hybrid fetches 256 and computes 128")
     args = p.parse_args()
     compute_keys = 256 if args.tile == "256" else 128

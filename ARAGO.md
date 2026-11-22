@@ -1,5 +1,7 @@
 # Arago inference exercise
 
+The current FlashAttention default fetches and reduces **256 keys** with two K/V slots (753 KiB peak prefill, 427.03125 KiB decode). The 128-key kernel, timings and tables below document the historical baseline. Select `key_tile=128` to reproduce them.
+
 [Per-case TTFT, rate and bottleneck](docs/case-metrics.md) · [Interactivity recommendations](docs/interactivity-recommendations.md) · [Requirements coverage and open issues](docs/coverage.md) · [Architecture, accuracy and four-device comparison](docs/architecture-comparison.md)
 
 Start with one accelerator, one synchronous batch of 16 users, and materialized causal attention. Run streaming attention on the same requests as the first optimization. ONNXim supplies target cycles. PyTorch on the RTX 4060 supplies numerical results. The two programs currently execute independent implementations. The build commands, cold-tile test and existing measurements are in the [simulator guide](docs/arago.md).
@@ -46,7 +48,7 @@ The schedule saves **2.398 s (6.88%)** of complete-layer time across this batch.
 To reproduce the [full-trace comparison](example/arago/results/batch16-flashattention.json), run:
 
 ```bash
-python3 tools/arago/run_comparison.py --workload batch16 \
+ARAGO_HARDWARE_CONFIG=configs/arago_128_baseline.json python3 tools/arago/run_comparison.py --workload batch16 \
   --output /tmp/arago-batch16-flashattention.json
 ```
 
@@ -65,7 +67,7 @@ Path("prompts.json").write_text(json.dumps(texts, ensure_ascii=False), encoding=
 ```
 
 ```bash
-python tools/arago/check_attention.py --checkpoint "$MODEL_DIR" \
+python tools/arago/check_attention.py --tile 128 --checkpoint "$MODEL_DIR" \
   --prompts-file /path/to/prompts.json --device cuda --batch 16 \
   --prompt 2048 --context 2176 --json /tmp/arago-b16-numerics.json
 ```
@@ -172,4 +174,4 @@ The [coverage audit](docs/coverage.md) records which of these experiments have r
 
 Two candidate hardware improvements are a queued DMA descriptor list to hide command delivery between transfers, and programmable array-output shifts before the INT16 return. Compare each independently with the fixed baseline and report its change in per-user decode rate.
 
-For the report, use the control program and its 449 KiB prefill allocation above, rank the measured bottlenecks, and evaluate two architectural changes individually against the same baseline. Keep hardware proposals separate from software-only scheduling improvements. [One-layer timing results](example/arago/results/layer-comparison.json) · [Layer schedule](src/arago/DecoderLayer.cc)
+The 449 KiB allocation and bottleneck ranking above belong to the archived 128-key comparison. The current 256-key schedule reserves 753 KiB at peak prefill. Keep hardware proposals separate from software-only scheduling improvements. [One-layer timing results](example/arago/results/layer-comparison.json) · [Layer schedule](src/arago/DecoderLayer.cc)

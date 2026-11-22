@@ -1,5 +1,6 @@
 {
   "target": "arago-dual-array",
+  "key_tile": 256,
   "clock_hz": 1000000000,
   "array_input_bits": 8,
   "array_output_bits": 16,

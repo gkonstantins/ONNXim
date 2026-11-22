@@ -92,6 +92,11 @@ Region::Region(const json& config, const std::string& algorithm)
   else if (algorithm == "rowblocked") schedule_ = AttentionSchedule::RowBlocked;
   else if (algorithm == "flashattention" || algorithm == "streaming") schedule_ = AttentionSchedule::Streaming;
   else throw std::invalid_argument("attention must be naive, rowblocked, flashattention, or streaming");
+  // The wider numeric formats need a smaller query panel with a full 256-key fetch.
+  if (schedule_ == AttentionSchedule::Streaming && hardware_.key_tile == 256 &&
+      !hardware_.hybrid_kv && !config.contains("query_tile") &&
+      (hardware_.exact_a16 || (hardware_.input_bytes() == 2 && hardware_.output_bytes() == 4)))
+    hardware_.query_tile = 16;
   if (hardware_.hybrid_kv && (hardware_.key_tile != 256 || schedule_ != AttentionSchedule::Streaming))
     throw std::invalid_argument("hybrid_kv requires FlashAttention and key_tile=256");
 }
@@ -122,6 +127,7 @@ json Region::run(LayerShape shape) const {
                  {"queries",shape.queries},{"visible_context",shape.context},
                  {"layer",phase(metrics.layer)},{"attention",phase(metrics.attention)}};
   if (hw.mlp_pingpong) record["mlp_pingpong"] = true;
+  // An absent kv_tile denotes 128/128 in the frozen record format.
   if (hw.key_tile != 128 || hw.hybrid_kv)
     record["kv_tile"] = {{"dma_keys",hw.key_tile},{"compute_keys",hw.hybrid_kv ? 128u : hw.key_tile}};
   // Preserve the frozen default record format. Nondefault runs carry units and

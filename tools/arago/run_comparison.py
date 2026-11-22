@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -29,7 +30,8 @@ def require(condition, message):
 
 def run_trace(simulator, case, schedule, sram_capacity, expected):
     trace = f"example/arago/{case}.csv"
-    command = [str(simulator), "--mode", "arago", "--model", MODEL, "--config", CONFIG,
+    config = os.environ.get("ARAGO_HARDWARE_CONFIG", CONFIG)
+    command = [str(simulator), "--mode", "arago", "--model", MODEL, "--config", config,
                "--batch", "16", "--trace_file", trace, "--attention", schedule]
     process = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, check=True)
     rows = [json.loads(line) for line in process.stdout.splitlines() if line.strip()]
@@ -110,9 +112,11 @@ def interval_summary(naive, flash):
 
 
 def report(simulator, workload="probes"):
-    cfg = json.loads((ROOT / CONFIG).read_text(encoding="utf-8"))
+    cfg = json.loads((ROOT / os.environ.get("ARAGO_HARDWARE_CONFIG", CONFIG)).read_text(encoding="utf-8"))
     result = {"scope": "one_decoder_layer", "target": cfg["target"], "clock_hz": cfg["clock_hz"],
               "model_preset": MODEL, "hardware_config": CONFIG}
+    if cfg.get("key_tile",256) != 128:
+        result["key_tile"] = cfg.get("key_tile",256)
     if workload == "batch16":
         expected = [("prefill", 16, 2048, 2048)] + [("decode", 16, 1, n) for n in range(2049, 2304)]
         naive, flash = run_pair(simulator, workload, "flashattention", cfg["scratchpad_bytes"], expected)

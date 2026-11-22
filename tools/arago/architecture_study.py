@@ -4,6 +4,7 @@ import csv
 import hashlib
 import json
 import math
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -12,7 +13,7 @@ from units import clock_hz, cycles_ns
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_BINARY = ROOT / "build/arago/cmake/arago/onnxim-arago"
-BASE = ROOT / "configs/arago_dual_array.json"
+BASE = Path(os.environ.get("ARAGO_HARDWARE_CONFIG", ROOT / "configs/arago_dual_array.json")).resolve()
 MODEL = ROOT / "models/language_models/llama3-8b.json"
 DESIGN = ROOT / "configs/arago_experiments.json"
 LAYERS, HIDDEN = 32, 4096

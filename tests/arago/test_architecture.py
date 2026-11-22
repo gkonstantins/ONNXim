@@ -17,7 +17,7 @@ class ArchitectureTests(unittest.TestCase):
         self.directory=Path(tmp.name)
 
     def run_case(self,b=1,mode="flashattention",**cfg):
-        return study.simulate(BINARY,self.directory,b,mode,cfg,160,4)
+        return study.simulate(BINARY,self.directory,b,mode,cfg,288,4)
 
     def test_assignment_constants(self):
         c=json.loads(study.BASE.read_text())
@@ -26,13 +26,19 @@ class ArchitectureTests(unittest.TestCase):
             "array_launch","vector_launch","array16_input_bytes_per_cycle","array32_input_bytes_per_cycle",
             "array_output_bytes_per_cycle","vector_bytes_per_cycle")],[200,200,150,64,100,300,64,96,8,128])
 
+    def test_default_flash_tile(self):
+        rows = self.run_case()
+        self.assertEqual(rows[0]["kv_tile"], {"dma_keys":256, "compute_keys":256})
+        self.assertEqual(rows[0]["attention"]["peak_sram_bytes"], 771072)
+        self.assertEqual(rows[-1]["attention"]["peak_sram_bytes"], 437280)
+
     def test_factorial_batch_schedule_precision(self):
         for batch in (1,16):
             for mode in ("naive","rowblocked","flashattention"):
-                one=self.run_case(batch,mode)
+                one=self.run_case(batch,mode,query_tile=16)
                 for name in ("scaled","fixedshift","saturate","bounded","exact4","a16exact"):
                     with self.subTest(batch=batch,mode=mode,precision=name):
-                        rows=self.run_case(batch,mode,precision_policy=name)
+                        rows=self.run_case(batch,mode,query_tile=16,precision_policy=name)
                         for a,b in zip(one,rows):
                             for field in ("array16_tiles","array32_tiles"):
                                 factor={"exact4":4,"a16exact":16}.get(name,1)

@@ -31,7 +31,7 @@ struct HardwareConfig {
   bool wavefront_fill = false, transpose_decode = false, double_buffer = true;
   bool share_kv = true;
   unsigned mac_percent = 100;
-  unsigned pipeline_stages = 1, tensor_shards = 1, query_tile = 32, key_tile = 128;
+  unsigned pipeline_stages = 1, tensor_shards = 1, query_tile = 32, key_tile = 256;
   bool mlp_pingpong = false;
   bool hybrid_kv = false;  // Fetch 256 keys, reduce in 128-key panels.
   bool trace_engines = false;

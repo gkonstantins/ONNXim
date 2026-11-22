@@ -1,5 +1,7 @@
 # Arago dual-array target for ONNXim
 
+The current FlashAttention default fetches and reduces 256 keys. Performance tables in this guide use the archived 128-key mapping.
+
 This target models one Llama 3.1 8B decoder block on a device with a 16×16 array, a 32×16 array, one DMA engine, one software-managed scratchpad and one vector unit. The default experiment compares a materialized attention implementation with an online, double-buffered implementation. It reports target cycles, DRAM payload traffic and peak live SRAM for attention and for the complete block. An independent PyTorch program compares numerical outputs.
 
 The port starts from ONNXim revision `8599bee46b311fb267ac34b0677ad7db3d8a8ccd`. It uses ONNXim's actual request trace parser, FIFO admission, language-model batch generation, cache progression and retirement. For each admitted batch, the Arago path lowers the decoder block to target operations and advances the scheduler by the resulting cycles. The focused build bypasses the stock square-array mapper, private per-core scratchpads and BookSim/Ramulator transport. [Target entry point](../src/arago/Run.cc) · [Decoder block](../src/arago/DecoderLayer.cc) · [Hardware model](../src/arago/Hardware.cc)
@@ -132,4 +134,4 @@ accepts UTF-8 hardware JSON, schedule, batch size, query length and visible
 context. Copy the returned JSON before the next call on the same thread.
 Failures return a JSON object with an error message. The canonical hardware
 preset is `configs/arago_dual_array.json`. Operator profiles and engine-event
-traces are opt-in. Normal runs retain the original timing and output fields.
+traces are opt-in. Explicit 128-key runs retain the original timing and output fields.
