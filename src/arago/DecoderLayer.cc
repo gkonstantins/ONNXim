@@ -170,10 +170,10 @@ PhaseMetrics dense(Count m, unsigned n, unsigned k, const HardwareConfig& cfg) {
   return out;
 }
 
-// Fixedshift MLP. Weights are blocked in DRAM in array-consumption order.
+// Fixedshift W8 image: [depth / 256][output channel][256 depth lanes].
 // Each slab drains before the next slab reuses its workspace.
-PhaseMetrics mlp_slab(unsigned rows, unsigned channels, unsigned depth, bool decode,
-                      const HardwareConfig& cfg) {
+PhaseMetrics projection_slab(unsigned rows, unsigned channels, unsigned depth, bool decode,
+                             const HardwareConfig& cfg) {
   Hardware h(cfg);
   const Count padded = rows_for(rows).padded();
   const Count outputs = Count(rows)*channels;
@@ -183,7 +183,7 @@ PhaseMetrics mlp_slab(unsigned rows, unsigned channels, unsigned depth, bool dec
   // Prefill streams raw A16 in two slots into one reusable packed panel.
   const Count inputs = decode ? 18ULL*depth : (4*rows+padded)*256;
   const Count workspace = inputs + 2ULL*channels*256 + 2*returns + 4*sums + 2*outputs;
-  if (decode && workspace > 676*1024) throw std::logic_error("decode MLP slab exceeds budget");
+  if (decode && workspace > 676*1024) throw std::logic_error("decode projection slab exceeds budget");
   h.reserve(workspace);
   Cycle input_ready = 0;
   if (decode) {
@@ -208,10 +208,10 @@ PhaseMetrics mlp_slab(unsigned rows, unsigned channels, unsigned depth, bool dec
   return metrics(h);
 }
 
-PhaseMetrics mlp_projection(const LayerShape& shape, unsigned channels, unsigned depth,
-                            bool gate_up, const HardwareConfig& cfg) {
+PhaseMetrics projection(const LayerShape& shape, unsigned channels, unsigned depth,
+                        bool pingpong, const HardwareConfig& cfg, unsigned channel_limit = 1104) {
   const Count rows = Count(shape.batch)*shape.queries;
-  if (!cfg.mlp_pingpong) return dense(rows,channels,depth,cfg);
+  if (!pingpong) return dense(rows,channels,depth,cfg);
   const bool decode = shape.queries == 1;
   const unsigned row_block = decode ? 16 : 96;
   PhaseMetrics result;
@@ -222,13 +222,13 @@ PhaseMetrics mlp_projection(const LayerShape& shape, unsigned channels, unsigned
     if (decode) {
       // A full 48-channel group gives 32 rows to one array and 16 to the other.
       const unsigned groups = (676*1024-18*depth)/(48*(512+32+6*m));
-      width = std::min(gate_up ? 1104u : 720u,48*groups);
+      width = std::min(channel_limit,48*groups);
     }
     PhaseMetrics row_group;
     for (unsigned j=0; j<channels;) {
       const unsigned n = std::min(width,channels-j);
       const unsigned repeats = (channels-j)/n;
-      append(row_group,mlp_slab(m,n,depth,decode,cfg),repeats);
+      append(row_group,projection_slab(m,n,depth,decode,cfg),repeats);
       j += n*repeats;
     }
     append(result,row_group,row_repeats);
@@ -461,7 +461,8 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
   const Count m = Count(shape.batch)*shape.queries;
   LayerMetrics out;
   record_phase(out.layer, profile, "input_norm", vector_rows(m, hidden, VectorOp::Norm, config));
-  record_phase(out.layer, profile, "qkv", dense(m, (hidden+2*kv_width)/tp, hidden, config)); // fused Q/K/V
+  record_phase(out.layer, profile, "qkv",
+               projection(shape, (hidden+2*kv_width)/tp, hidden, config.projection_pingpong, config));
   record_phase(out.layer, profile, "rope", vector_rows(m, (hidden+kv_width)/tp, VectorOp::Rotary, config));
   record_phase(out.layer, profile, "kv_append", vector_rows(m, 2*kv_width/tp, VectorOp::CopyKV, config));
 
@@ -478,12 +479,15 @@ LayerMetrics run_decoder_layer(const LayerShape& shape, AttentionSchedule schedu
            Count(shape.batch)*kv_heads/tp*(config.share_kv ? 1 : group));
   }
   record_phase(out.layer, profile, "attention", out.attention);
-  record_phase(out.layer, profile, "out_proj", dense(m, hidden, hidden/tp, config)); // attention output projection
+  record_phase(out.layer, profile, "out_proj",
+               projection(shape, hidden, hidden/tp, config.projection_pingpong, config));
   record_phase(out.layer, profile, "attention_residual", vector_rows(m, hidden, VectorOp::Residual, config));
   record_phase(out.layer, profile, "post_norm", vector_rows(m, hidden, VectorOp::Norm, config));
-  record_phase(out.layer, profile, "gate_up", mlp_projection(shape,2*ffn/tp,hidden,true,config)); // fused gate and up
+  record_phase(out.layer, profile, "gate_up",
+               projection(shape, 2*ffn/tp, hidden, config.mlp_pingpong, config));
   record_phase(out.layer, profile, "swiglu", vector_rows(m, ffn/tp, VectorOp::SwiGLU, config));
-  record_phase(out.layer, profile, "down_proj", mlp_projection(shape,hidden,ffn/tp,false,config)); // down
+  record_phase(out.layer, profile, "down_proj",
+               projection(shape, hidden, ffn/tp, config.mlp_pingpong, config, 720));
   record_phase(out.layer, profile, "ffn_residual", vector_rows(m, hidden, VectorOp::Residual, config));
   return out;
 }
@@ -500,7 +504,9 @@ PhaseMetrics run_endpoints(const LayerShape& shape, const HardwareConfig& cfg, C
   record_phase(result,profile,"embedding",metrics(embed),Count(shape.batch)*shape.queries);
   embedding = result.cycles;
   record_phase(result,profile,"final_norm",vector_rows(shape.batch,hidden,VectorOp::Norm,cfg));
-  record_phase(result,profile,"lm_head",dense(shape.batch,128256,hidden,cfg));
+  const LayerShape last_position{shape.batch, 1, shape.context};
+  record_phase(result, profile, "lm_head",
+               projection(last_position, 128256, hidden, cfg.projection_pingpong, cfg));
   // Greedy argmax over A16 logits in SRAM-sized chunks, one INT32 id per user.
   Hardware argmax(cfg);
   argmax.reserve(2*16384+16);
