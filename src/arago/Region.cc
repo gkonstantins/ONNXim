@@ -52,15 +52,20 @@ HardwareConfig hardware_config(const json& j) {
   const auto policy = j.value("precision_policy", std::string("scaled"));
   if (policy != "scaled" && policy != "fixedshift" && policy != "exact4" && policy != "a16exact" && policy != "bounded" && policy != "saturate")
     throw std::invalid_argument("unknown precision_policy");
-  h.mlp_pingpong = j.value("mlp_pingpong",false);
-  h.projection_pingpong = j.value("projection_pingpong",h.mlp_pingpong);
-  h.optimized_decode = j.value("optimized_decode",h.mlp_pingpong && h.projection_pingpong);
-  if (h.optimized_decode && !(h.mlp_pingpong && h.projection_pingpong))
-    throw std::invalid_argument("optimized_decode requires double-buffered fixedshift projections");
-  if ((h.mlp_pingpong || h.projection_pingpong) && (policy != "fixedshift" || h.input_bytes() != 1 || h.output_bytes() != 2))
-    throw std::invalid_argument("double-buffered projections require fixedshift and 8/16-bit array ports");
+  const bool mlp = j.value("mlp_pingpong",j.value("optimized_decode",false));
+  const bool projections = j.value("projection_pingpong",mlp);
+  h.optimized_decode = j.value("optimized_decode",mlp && projections);
+  // Tile-scaled outputs keep their original scale groups. Exact products
+  // require digit expansion and reconstruction in the dense projection path.
+  const bool packed = (policy == "fixedshift" || policy == "bounded" || policy == "saturate")
+                      && h.input_bytes() == 1 && h.output_bytes() == 2;
+  h.mlp_pingpong = mlp && packed;
+  h.projection_pingpong = projections && packed;
+  h.transpose_flash_decode = h.optimized_decode && policy != "scaled";
   h.exact_a16 = policy == "a16exact";
   h.exact_digits = policy == "exact4" || h.exact_a16;
+  if (h.exact_digits && (h.input_bytes() != 1 || h.output_bytes() != 2))
+    throw std::invalid_argument("exact digit policies require the 8/16 interface");
   for (const char* key : {"pipeline_stages","tensor_shards","query_tile","key_tile","mac_percent"}) {
     if (!j.contains(key)) continue;
     auto value = unsigned_field(j,key);
@@ -133,7 +138,10 @@ json Region::run(LayerShape shape) const {
                  {"phase","unspecified"},{"batch",shape.batch},
                  {"queries",shape.queries},{"visible_context",shape.context},
                  {"layer",phase(metrics.layer)},{"attention",phase(metrics.attention)}};
-  if (hw.optimized_decode) record["optimized_decode"] = true;
+  if (hw.optimized_decode) {
+    record["optimized_decode"] = true;
+    record["query_tile"] = hw.query_tile;
+  }
   if (hw.projection_pingpong) record["projection_pingpong"] = true;
   if (hw.mlp_pingpong) record["mlp_pingpong"] = true;
   // An absent kv_tile denotes 128/128 in the frozen record format.

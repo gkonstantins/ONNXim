@@ -126,7 +126,11 @@ PhaseMetrics dense_slab(Count m, unsigned n, unsigned k, const HardwareConfig& c
   const Count outputs = padded * n;
   const Count depth_max = std::min(k, 256u);
   const Count ib = cfg.input_bytes(), ob = cfg.output_bytes();
-  h.reserve(2*m*depth_max + ib*(padded+n)*depth_max + (ob+4)*outputs +
+  // Multi-pass optimized projections consume the reconstructed digit result.
+  // A16 x W8 sums across the full reduction can exceed INT32.
+  const Count sum_bytes = cfg.optimized_decode && cfg.exact_a16 ? 8 : 4;
+  const Count partial_bytes = cfg.optimized_decode && cfg.exact_digits ? sum_bytes : ob;
+  h.reserve(2*m*depth_max + ib*(padded+n)*depth_max + (ob+sum_bytes)*outputs +
             (ib == 1 ? 0 : n*depth_max));
   Cycle ready = 0;
   for (unsigned offset = 0; offset < k; offset += 256) {
@@ -149,24 +153,26 @@ PhaseMetrics dense_slab(Count m, unsigned n, unsigned k, const HardwareConfig& c
       done = panel_gemm(h,m,n,depth,ready_inputs,cfg,true);
     }
     // Read native partial, and previous wide sum on subsequent passes.
-    ready = h.vector(outputs * (ob + (offset == 0 ? 4 : 8)), done);
+    ready = h.vector(outputs * (partial_bytes + (offset == 0 ? sum_bytes : 2*sum_bytes)), done);
   }
-  ready = h.vector((4*padded + 2*m)*n, ready);
+  ready = h.vector((sum_bytes*padded + 2*m)*n, ready);
   h.write(2*m*n, ready);
   return metrics(h);
 }
 
 PhaseMetrics dense(Count m, unsigned n, unsigned k, const HardwareConfig& cfg) {
-  // Each output slab completes before reusing its allocation. All model N
-  // dimensions are multiples of 128, including the two fused projections.
+  // A four-way vocabulary shard has 32,064 channels and a final 64-channel slab.
   PhaseMetrics out;
   constexpr Count mblock = 192;
   constexpr unsigned nblock = 128;
-  if (n % nblock) throw std::logic_error("unexpected projection width");
-  if (m >= mblock) {
-    append(out, dense_slab(mblock, nblock, k, cfg), (m/mblock) * (n/nblock));
-  }
-  if (m % mblock) append(out, dense_slab(m%mblock, nblock, k, cfg), n/nblock);
+  auto row_group = [&](Count rows, Count repeats) {
+    PhaseMetrics group;
+    if (n >= nblock) append(group,dense_slab(rows,nblock,k,cfg),n/nblock);
+    if (n % nblock) append(group,dense_slab(rows,n%nblock,k,cfg));
+    append(out,group,repeats);
+  };
+  if (m >= mblock) row_group(mblock,m/mblock);
+  if (m % mblock) row_group(m%mblock,1);
   return out;
 }
 
@@ -298,7 +304,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
   Hardware h(cfg);
   const Count ib = cfg.input_bytes(), ob = cfg.output_bytes();
   const auto kv_block = cfg.key_tile;
-  const bool transpose = cfg.optimized_decode && decode;
+  const bool transpose = cfg.transpose_flash_decode && decode;
   const Count rows = (cfg.share_kv ? group : 1) * q;
   const Count padded = rows_for(rows).padded();
   const Count qb = rows * head_dim;
@@ -417,7 +423,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
         // Keep a short unaligned tail in the original orientation to avoid K padding.
         const Cycle ready_qk = std::max({packed, query_ready, done});
         const auto scores = transpose && width % 16 == 0
-            ? native_panel(h,width,rows,head_dim,ready_qk)
+            ? panel_gemm(h,width,rows,head_dim,ready_qk,cfg)
             : panel_gemm(h,rows,width,head_dim,ready_qk,cfg);
         if (offset == 0) first_scores = scores;
         // SIMD reads logits and builds normalized-to-local-max INT8 weights;
@@ -427,7 +433,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
         h.trace_label("PV", b);
         // V^T @ P^T distributes independent value channels. SIMD reads the
         // strided return while rescaling the same per-head numerator.
-        last_pv = transpose ? native_panel(h,head_dim,rows,width,weights)
+        last_pv = transpose ? panel_gemm(h,head_dim,rows,width,weights,cfg)
                             : panel_gemm(h,rows,head_dim,width,weights,cfg);
         // Fused rescale of old numerator and addition of new widened partial.
         h.trace_label("Rescale and accumulate", b);
