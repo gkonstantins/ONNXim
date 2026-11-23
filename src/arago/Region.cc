@@ -107,6 +107,12 @@ Region::Region(const json& config, const std::string& algorithm)
       !hardware_.hybrid_kv && !config.contains("query_tile") &&
       (hardware_.exact_a16 || (hardware_.input_bytes() == 2 && hardware_.output_bytes() == 4)))
     hardware_.query_tile = 16;
+  // 48 query positions reuse a full 256-key K/V fetch across 192 Q heads/rows.
+  // Keep the existing geometry for wider/digit arithmetic or smaller SRAMs.
+  if (schedule_ == AttentionSchedule::Streaming && hardware_.overlap_decode &&
+      hardware_.projection_pingpong && hardware_.key_tile == 256 && !hardware_.hybrid_kv &&
+      hardware_.scratchpad_bytes >= 960000 && !config.contains("query_tile"))
+    hardware_.query_tile = 48;
   if (hardware_.hybrid_kv && (hardware_.key_tile != 256 || schedule_ != AttentionSchedule::Streaming))
     throw std::invalid_argument("hybrid_kv requires FlashAttention and key_tile=256");
 }

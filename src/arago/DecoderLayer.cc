@@ -179,7 +179,7 @@ PhaseMetrics dense(Count m, unsigned n, unsigned k, const HardwareConfig& cfg) {
 // Fixedshift W8 image: [depth / 256][output channel][256 depth lanes].
 // Each slab drains before the next slab reuses its workspace.
 PhaseMetrics projection_slab(unsigned rows, unsigned channels, unsigned depth, bool decode,
-                             const HardwareConfig& cfg) {
+                             const HardwareConfig& cfg, bool input_resident = false) {
   Hardware h(cfg);
   const Count padded = rows_for(rows).padded();
   const Count outputs = Count(rows)*channels;
@@ -187,13 +187,18 @@ PhaseMetrics projection_slab(unsigned rows, unsigned channels, unsigned depth, b
   const Count sums = decode ? outputs : returns;
   // Decode packs each user into a column of one persistent [16,depth] panel.
   // Prefill streams raw A16 in two slots into one reusable packed panel.
-  const Count inputs = decode ? 18ULL*depth : (4*rows+padded)*256;
   const bool overlap = decode && cfg.overlap_decode;
+  const Count inputs = decode ? (16ULL+2*(overlap ? rows : 1))*depth : (4*rows+padded)*256;
   const Count workspace = inputs + 2ULL*channels*256 + (overlap ? 4 : 2)*returns + 4*sums + 2*outputs;
   // Width selection enforces the decode slab budget; reserve checks physical SRAM.
   h.reserve(workspace);
   Cycle input_ready = 0;
-  if (decode) {
+  if (overlap && !input_resident) {
+    // Rank-local activations are contiguous. Pack independent row scales in one
+    // SIMD command and keep the packed columns at the same address across slabs.
+    const auto raw = h.read(2ULL*rows*depth);
+    input_ready = h.vector((2ULL*rows+16)*depth,raw);
+  } else if (decode && !overlap) {
     for (unsigned user=0; user<rows; ++user) {
       const auto raw = h.read(2*depth,input_ready); // reuse one raw row
       const auto written_rows = user+1 == rows ? 16-rows+1 : 1;
@@ -233,7 +238,7 @@ PhaseMetrics projection(const LayerShape& shape, unsigned channels, unsigned dep
     if (decode) {
       // A full 48-channel group gives 32 rows to one array and 16 to the other.
       const Count budget = std::min<Count>(cfg.scratchpad_bytes,(cfg.optimized_decode ? 960 : 676)*1024);
-      const Count inputs = 18ULL*depth;
+      const Count inputs = (16ULL+2*(cfg.overlap_decode ? m : 1))*depth;
       const unsigned groups = budget > inputs ? (budget-inputs)/(48*(512+(cfg.overlap_decode ? 64 : 32)+6*m)) : 0;
       if (!groups) throw std::length_error("decode projection panel exceeds scratchpad budget");
       width = cfg.optimized_decode ? 48*groups : std::min(channel_limit,48*groups);
@@ -242,7 +247,14 @@ PhaseMetrics projection(const LayerShape& shape, unsigned channels, unsigned dep
     for (unsigned j=0; j<channels;) {
       const unsigned n = std::min(width,channels-j);
       const unsigned repeats = (channels-j)/n;
-      append(row_group,projection_slab(m,n,depth,decode,cfg),repeats);
+      if (decode && cfg.overlap_decode) {
+        const unsigned cold = j == 0 ? 1 : 0;
+        if (cold) append(row_group,projection_slab(m,n,depth,true,cfg));
+        if (repeats > cold)
+          append(row_group,projection_slab(m,n,depth,true,cfg,true),repeats-cold);
+      } else {
+        append(row_group,projection_slab(m,n,depth,decode,cfg),repeats);
+      }
       j += n*repeats;
     }
     append(result,row_group,row_repeats);
@@ -406,7 +418,7 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
                              (ob+4+ib)*score_scratch + (ob+4)*value_scratch + 8*rows;
     h.reserve(allocation);
     const auto query_ready = h.vector(2*qb+ib*padded*head_dim, h.read(2*qb));
-    Cycle k_arrival[2]{};
+    Cycle k_arrival[2]{}, next_key_packed = 0;
     const bool split_pack = decode && cfg.overlap_decode;
     auto load = [&](Count b, Cycle slot_free) {
       const auto bytes = 2*keys_at(b)*head_dim;
@@ -422,8 +434,10 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       Cycle next = cfg.double_buffer && b+1 < blocks ? load(b+1, done) : 0;
       const auto pack_bytes = (2+ib)*n*head_dim;
       h.trace_label(split_pack ? "K packing" : "KV packing", b);
-      const auto packed = split_pack ? h.vector(pack_bytes,k_arrival[b%2])
-                                     : h.vector(2*pack_bytes,ready);
+      Cycle packed = next_key_packed;
+      if (!packed)
+        packed = split_pack ? h.vector(pack_bytes,k_arrival[b%2]) : h.vector(2*pack_bytes,ready);
+      next_key_packed = 0;
       Cycle v_packed = packed;
       if (split_pack) {
         h.trace_label("V packing", b);
@@ -451,6 +465,12 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
         last_pv = transpose ? panel_gemm(h,head_dim,rows,width,pv_ready,cfg)
                             : panel_gemm(h,rows,head_dim,width,pv_ready,cfg);
         // Fused rescale of old numerator and addition of new widened partial.
+        if (split_pack && cfg.double_buffer && b+1 < blocks && offset+width == n) {
+          // Only K is independent of the current online state. Its own DMA
+          // and the previous use of its physical slot have already completed.
+          h.trace_label("K packing", b+1);
+          next_key_packed = h.vector((2+ib)*keys_at(b+1)*head_dim,k_arrival[(b+1)%2]);
+        }
         h.trace_label("Rescale and accumulate", b);
         done = h.vector(value_scratch*(ob+(b == 0 && offset == 0 ? 4 : 8)), last_pv);
       }

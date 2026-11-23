@@ -80,6 +80,10 @@ int main() {
             b.released>=b.values_ready,"split K/V consumer or slot hazard");
       free[b.slot]=b.released;
     }
+    const auto& first = result.tile_plan[0];
+    const auto& next = result.tile_plan[1];
+    check(pingpong ? next.k_packed < first.released : next.k_packed >= first.released,
+          "K lookahead must respect the number of physical slots");
     check(result.tile_plan.front().k_packed<result.tile_plan.front().loaded,
           "first K panel can be packed before V arrives");
   }
