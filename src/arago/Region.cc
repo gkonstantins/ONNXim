@@ -61,6 +61,7 @@ HardwareConfig hardware_config(const json& j) {
                       && h.input_bytes() == 1 && h.output_bytes() == 2;
   h.mlp_pingpong = mlp && packed;
   h.projection_pingpong = projections && packed;
+  h.overlap_decode = h.optimized_decode && j.value("overlap_decode",true);
   h.transpose_flash_decode = h.optimized_decode && policy != "scaled";
   h.exact_a16 = policy == "a16exact";
   h.exact_digits = policy == "exact4" || h.exact_a16;
@@ -140,6 +141,7 @@ json Region::run(LayerShape shape) const {
                  {"layer",phase(metrics.layer)},{"attention",phase(metrics.attention)}};
   if (hw.optimized_decode) {
     record["optimized_decode"] = true;
+    if (hw.overlap_decode) record["overlap_decode"] = true;
     record["query_tile"] = hw.query_tile;
   }
   if (hw.projection_pingpong) record["projection_pingpong"] = true;
@@ -155,10 +157,17 @@ json Region::run(LayerShape shape) const {
   if (hw.trace_panels) {
     if (schedule_ != AttentionSchedule::Streaming) throw std::invalid_argument("tile plan requires streaming");
     record["tile_plan"] = json::array();
-    for (const auto& e : metrics.tile_plan)
+    for (const auto& e : metrics.tile_plan) {
       record["tile_plan"].push_back({{"q0",e.query_offset},{"q",e.queries},{"k0",e.key_offset},
         {"k",e.keys},{"slot",e.slot},{"slot_ready",e.load_ready},{"loaded",e.loaded},
         {"score",e.scores_ready},{"pv",e.values_ready},{"released",e.released}});
+      if (e.k_packed) {
+        auto& block = record["tile_plan"].back();
+        block["k_loaded"] = e.k_loaded;
+        block["k_packed"] = e.k_packed;
+        block["v_packed"] = e.v_packed;
+      }
+    }
   }
   if (hw.model_endpoints) {
     record["resident_estimate_B"] = matrices+cache+workspace;

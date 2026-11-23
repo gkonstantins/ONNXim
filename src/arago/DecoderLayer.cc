@@ -188,7 +188,8 @@ PhaseMetrics projection_slab(unsigned rows, unsigned channels, unsigned depth, b
   // Decode packs each user into a column of one persistent [16,depth] panel.
   // Prefill streams raw A16 in two slots into one reusable packed panel.
   const Count inputs = decode ? 18ULL*depth : (4*rows+padded)*256;
-  const Count workspace = inputs + 2ULL*channels*256 + 2*returns + 4*sums + 2*outputs;
+  const bool overlap = decode && cfg.overlap_decode;
+  const Count workspace = inputs + 2ULL*channels*256 + (overlap ? 4 : 2)*returns + 4*sums + 2*outputs;
   // Width selection enforces the decode slab budget; reserve checks physical SRAM.
   h.reserve(workspace);
   Cycle input_ready = 0;
@@ -199,16 +200,20 @@ PhaseMetrics projection_slab(unsigned rows, unsigned channels, unsigned depth, b
       input_ready = h.vector((2+written_rows)*depth,raw);
     }
   }
-  Cycle slot_free[2]{}, merged = 0;
+  Cycle slot_free[2]{}, return_free[2]{}, merged = 0;
   for (unsigned offset=0; offset<depth; offset+=256) {
     const unsigned slot = (offset/256)%2;
     auto a = decode ? input_ready : h.read(2*rows*256,slot_free[slot]);
     auto w = h.read(channels*256,slot_free[slot]);
     if (!decode) a = h.vector((2*rows+padded)*256,std::max(a,merged));
-    const auto ready = std::max({a,w,merged});
+    const auto ready = std::max({a,w,overlap ? return_free[slot] : merged});
+    if (overlap) h.trace_label(slot ? "Result B" : "Result A");
     slot_free[slot] = decode ? native_panel(h,channels,rows,256,ready)
                              : native_panel(h,rows,channels,256,ready);
+    if (overlap) h.trace_label(slot ? "Merge B" : "Merge A");
     merged = h.vector(2*returns+(offset ? 8 : 4)*sums,slot_free[slot]);
+    return_free[slot] = merged;
+    if (overlap) h.trace_label("");
   }
   h.write(2*outputs,h.vector(4*sums+2*outputs,merged));
   return metrics(h);
@@ -229,7 +234,7 @@ PhaseMetrics projection(const LayerShape& shape, unsigned channels, unsigned dep
       // A full 48-channel group gives 32 rows to one array and 16 to the other.
       const Count budget = std::min<Count>(cfg.scratchpad_bytes,(cfg.optimized_decode ? 960 : 676)*1024);
       const Count inputs = 18ULL*depth;
-      const unsigned groups = budget > inputs ? (budget-inputs)/(48*(512+32+6*m)) : 0;
+      const unsigned groups = budget > inputs ? (budget-inputs)/(48*(512+(cfg.overlap_decode ? 64 : 32)+6*m)) : 0;
       if (!groups) throw std::length_error("decode projection panel exceeds scratchpad budget");
       width = cfg.optimized_decode ? 48*groups : std::min(channel_limit,48*groups);
     }
@@ -401,10 +406,12 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
                              (ob+4+ib)*score_scratch + (ob+4)*value_scratch + 8*rows;
     h.reserve(allocation);
     const auto query_ready = h.vector(2*qb+ib*padded*head_dim, h.read(2*qb));
+    Cycle k_arrival[2]{};
+    const bool split_pack = decode && cfg.overlap_decode;
     auto load = [&](Count b, Cycle slot_free) {
       const auto bytes = 2*keys_at(b)*head_dim;
       h.trace_label("K prefetch", b);
-      h.read(bytes, slot_free);
+      k_arrival[b%2] = h.read(bytes, slot_free);
       h.trace_label("V prefetch", b);
       return h.read(bytes, slot_free);
     };
@@ -413,8 +420,15 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
       const auto n = keys_at(b);
       const Cycle prior_done = done;
       Cycle next = cfg.double_buffer && b+1 < blocks ? load(b+1, done) : 0;
-      h.trace_label("KV packing", b);
-      const auto packed = h.vector(2*(2+ib)*n*head_dim, ready);
+      const auto pack_bytes = (2+ib)*n*head_dim;
+      h.trace_label(split_pack ? "K packing" : "KV packing", b);
+      const auto packed = split_pack ? h.vector(pack_bytes,k_arrival[b%2])
+                                     : h.vector(2*pack_bytes,ready);
+      Cycle v_packed = packed;
+      if (split_pack) {
+        h.trace_label("V packing", b);
+        v_packed = h.vector(pack_bytes,ready);
+      }
       Cycle first_scores = 0, last_pv = 0;
       for (Count offset = 0; offset < n; offset += compute_keys) {
         const Count width = std::min<Count>(compute_keys,n-offset);
@@ -433,15 +447,17 @@ PhaseMetrics attention_group(unsigned q, unsigned prefix, AttentionSchedule algo
         h.trace_label("PV", b);
         // V^T @ P^T distributes independent value channels. SIMD reads the
         // strided return while rescaling the same per-head numerator.
-        last_pv = transpose ? panel_gemm(h,head_dim,rows,width,weights,cfg)
-                            : panel_gemm(h,rows,head_dim,width,weights,cfg);
+        const auto pv_ready = std::max(weights,v_packed);
+        last_pv = transpose ? panel_gemm(h,head_dim,rows,width,pv_ready,cfg)
+                            : panel_gemm(h,rows,head_dim,width,pv_ready,cfg);
         // Fused rescale of old numerator and addition of new widened partial.
         h.trace_label("Rescale and accumulate", b);
         done = h.vector(value_scratch*(ob+(b == 0 && offset == 0 ? 4 : 8)), last_pv);
       }
       if (plan) plan->push_back({first,q,static_cast<unsigned>(b*kv_block),
           static_cast<unsigned>(n),static_cast<unsigned>(cfg.double_buffer ? b%2 : 0),
-          slot_ready,ready,first_scores,last_pv,done});
+          slot_ready,ready,first_scores,last_pv,done, k_arrival[b%2],
+          split_pack ? packed : 0, split_pack ? v_packed : 0});
       slot_ready = cfg.double_buffer ? prior_done : done;
       ready = !cfg.double_buffer && b+1 < blocks ? load(b+1,done) : next;
     }

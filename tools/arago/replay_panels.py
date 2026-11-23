@@ -28,7 +28,10 @@ def replay(row, q, k, v):
             slot=e["slot"]
             end=cursor+e["k"]
             if (e["k0"] != cursor or e["q"] != count or e["slot_ready"] < releases.get(slot,0)
-                    or not e["slot_ready"] <= e["loaded"] <= e["score"] <= e["pv"] <= e["released"]):
+                    or not e["slot_ready"] <= e.get("k_loaded",e["loaded"]) <= e["loaded"]
+                    or not e.get("k_loaded",e["loaded"]) <= e.get("k_packed",e["loaded"]) <= e["score"]
+                    or not e["loaded"] <= e.get("v_packed",e["loaded"]) <= e["pv"]
+                    or not e["score"] <= e["pv"] <= e["released"]):
                 raise ValueError("KV buffer reused early or invalid panel dependency")
             releases[slot] = e["released"]
             cursor=end
@@ -37,18 +40,21 @@ def replay(row, q, k, v):
         # before replacing it; reads require a completed DMA load.
         commands=[]
         for e in events:
-            commands.extend([(e["loaded"],1,"load",e), (e["score"],2,"score",e),
+            commands.extend([(e.get("k_loaded",e["loaded"]),1,"key",e),
+                             (e["loaded"],1,"value",e), (e["score"],2,"score",e),
                              (e["pv"],0,"pv",e)])
         slots, pending = {}, {}
         for _,_,kind,e in sorted(commands,key=lambda cmd:cmd[:2]):
             start,end,slot=e["k0"],e["k0"]+e["k"],e["slot"]
-            if kind=="load":
-                slots[slot]=(start,k[:,:,start:end].clone(),v[:,:,start:end].clone())
+            if kind=="key":
+                slots[slot]=[start,k[:,:,start:end].clone(),None]
                 continue
             if slot not in slots or slots[slot][0]!=start:
                 raise ValueError("consumer observed the wrong tile in SRAM")
             _,keys,values=slots[slot]
-            if kind=="score":
+            if kind=="value":
+                slots[slot][2]=v[:,:,start:end].clone()
+            elif kind=="score":
                 mask = torch.arange(start,end,device=q.device) <= torch.arange(
                     past+first,past+first+count,device=q.device)[:,None]
                 logits = (query @ keys.transpose(-1,-2) / 128**.5).masked_fill(~mask,-torch.inf)
@@ -77,7 +83,7 @@ def verify(binary, device):
         for batch in (1,16):
             for double in (True,False):
                 rows=simulate(binary,Path(tmp),batch,"flashattention",
-                        {"trace_panels":True,"double_buffer":double,"key_tile":32},145,2)
+                        {"trace_panels":True,"double_buffer":double,"key_tile":32,"optimized_decode":True},145,2)
                 for row in rows:
                     nq,nk=row["queries"],row["visible_context"]
                     q=torch.randn(batch,4,nq,128,device=device)
@@ -87,12 +93,28 @@ def verify(binary, device):
                     ref=((q@k.transpose(-1,-2)/128**.5).masked_fill(~mask,-torch.inf)).softmax(-1)@v
                     torch.testing.assert_close(replay(row,q,k,v),ref,atol=3e-6,rtol=2e-5)
                 # Deliberately corrupt a real plan. A numerical pass alone can miss this hazard.
-                rows[-1]["tile_plan"][-1]["slot_ready"]=-1
-                try:
-                    replay(rows[-1],q,k,v)
-                except ValueError:
-                    continue
-                raise AssertionError("reuse hazard was accepted")
+                last = rows[-1]["tile_plan"][-1]
+                for field,bad in (("slot_ready",-1),("k_packed",last["score"]+1),
+                                  ("v_packed",last["pv"]+1)):
+                    saved = last[field]
+                    last[field] = bad
+                    try:
+                        replay(rows[-1],q,k,v)
+                    except ValueError:
+                        pass
+                    else:
+                        raise AssertionError(f"accepted invalid {field}")
+                    last[field] = saved
+
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--simulator",type=Path,default=DEFAULT_BINARY)
+    p.add_argument("--device",choices=["cpu","cuda"],default="cpu")
+    args=p.parse_args()
+    verify(args.simulator.resolve(),args.device)
+    print("Panel replays and injected hazard passed")
 
 
 if __name__=="__main__":

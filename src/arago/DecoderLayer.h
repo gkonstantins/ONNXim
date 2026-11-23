@@ -48,6 +48,7 @@ using OperatorProfile = std::vector<std::pair<const char*, PhaseMetrics>>;
 struct BlockEvent {
   unsigned query_offset, queries, key_offset, keys, slot;
   Cycle load_ready, loaded, scores_ready, values_ready, released;
+  Cycle k_loaded = 0, k_packed = 0, v_packed = 0;
 };
 
 struct LayerMetrics {

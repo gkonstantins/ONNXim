@@ -64,6 +64,25 @@ void compare(const char* workload, const LayerShape& shape) {
 
 int main() {
   std::cout << "workload,schedule,phase,cycles,read_B,write_B,peak_SRAM_B,16x16_tiles,32x16_tiles,16x16_service,32x16_service,DMA_busy\n";
+  for (bool pingpong : {false,true}) {
+    HardwareConfig h;
+    h.trace_panels = h.optimized_decode = h.overlap_decode = true;
+    h.double_buffer = pingpong;
+    h.key_tile = 256;
+    const auto result = run_decoder_layer({16,1,521}, AttentionSchedule::Streaming,h);
+    check(result.tile_plan.size()==3,"full panels and ragged tail");
+    Cycle free[2]{};
+    for (const auto& b : result.tile_plan) {
+      check(b.load_ready>=free[b.slot] && b.load_ready<=b.k_loaded &&
+            b.k_loaded<=b.loaded && b.k_loaded<=b.k_packed &&
+            b.k_packed<=b.scores_ready && b.loaded<=b.v_packed &&
+            b.values_ready>=std::max(b.scores_ready,b.v_packed) &&
+            b.released>=b.values_ready,"split K/V consumer or slot hazard");
+      free[b.slot]=b.released;
+    }
+    check(result.tile_plan.front().k_packed<result.tile_plan.front().loaded,
+          "first K panel can be packed before V arrives");
+  }
   compare("ragged", {1, 35, 163});
   compare("prefill", {16, 2048, 2048});
   compare("decode", {16, 1, 2176});
