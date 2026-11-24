@@ -1,3 +1,7 @@
+## Arago timing extension
+
+This tree is ONNXim plus the dual-array timing extension in `src/arago/`. Build and clock rules are in [docs/arago.md](docs/arago.md). The graded assignment answers are in [../arago/README.md](../arago/README.md).
+
 # ONNXim: A Fast, Cycle-level Multi-core NPU Simulator
 [![Docker Image CI](https://github.com/PSAL-POSTECH/ONNXim/actions/workflows/docker-image.yml/badge.svg)](https://github.com/PSAL-POSTECH/ONNXim/actions/workflows/docker-image.yml)
 
