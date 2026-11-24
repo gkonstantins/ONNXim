@@ -36,6 +36,7 @@ struct LangInput {
   uint32_t context_length;
   std::vector<Tensor*> key_cache;
   std::vector<Tensor*> value_cache;
+  bool cached_decode = false;
 };
 
 class LanguageModel : public Model {
@@ -47,6 +48,7 @@ class LanguageModel : public Model {
   uint32_t load_key_cache(uint32_t layer, uint32_t batch);
   uint32_t load_value_cache(uint32_t layer, uint32_t batch);
   
+  const std::vector<LangInput>& requests() const { return _reqs; }
   void log_model();
   uint64_t get_weight_size() { return _wgt_size; }
   uint64_t get_act_size() { return _act_size; }
@@ -75,8 +77,8 @@ class LanguageModel : public Model {
     uint32_t _ffn1_out_dim;
     bool _llama_mlp;
     bool _run_single_layer;
-    uint64_t _wgt_size;  // in bytes
-    uint64_t _act_size; // in bytes
+    uint64_t _wgt_size = 0;  // in bytes
+    uint64_t _act_size = 0; // in bytes
     uint64_t _tensor_parallel_size;
     uint64_t _pipeline_parallel_size;
 

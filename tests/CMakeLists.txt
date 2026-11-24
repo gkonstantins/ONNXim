@@ -34,6 +34,7 @@ set_target_properties(${GMOCK_LIBRARY} PROPERTIES
 add_dependencies(${GMOCK_LIBRARY} GoogleTest)
 
 file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.h *.cc)
+list(FILTER TEST_SOURCES EXCLUDE REGEX "/arago/")
 SET(SOURCES ${TEST_SOURCES})
 add_executable(${BINARY} ${TEST_SOURCES})
 
