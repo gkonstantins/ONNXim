@@ -1,0 +1,20 @@
+{
+  "target": "arago-dual-array",
+  "key_tile": 256,
+  "clock_hz": 1000000000,
+  "array_input_bits": 8,
+  "array_output_bits": 16,
+  "dram_bytes": 68719476736,
+  "scratchpad_bytes": 1048576,
+  "dma_bytes_per_cycle": 64,
+  "sram_dma_rate": 64,
+  "dma_setup": 200,
+  "dram_read_start": 200,
+  "dram_write_start": 150,
+  "array16_input_bytes_per_cycle": 64,
+  "array32_input_bytes_per_cycle": 96,
+  "array_output_bytes_per_cycle": 8,
+  "array_launch": 100,
+  "vector_bytes_per_cycle": 128,
+  "vector_launch": 300
+}
