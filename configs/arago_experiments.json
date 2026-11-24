@@ -1,0 +1,292 @@
+{
+  "batches": [
+    1,
+    16
+  ],
+  "cases": [
+    {
+      "name": "baseline"
+    },
+    {
+      "name": "naive",
+      "attention": "naive"
+    },
+    {
+      "name": "exact4",
+      "override": {
+        "precision_policy": "exact4"
+      }
+    },
+    {
+      "name": "bounded",
+      "override": {
+        "precision_policy": "bounded"
+      }
+    },
+    {
+      "name": "saturate",
+      "override": {
+        "precision_policy": "saturate"
+      }
+    },
+    {
+      "name": "queued_delivery",
+      "override": {
+        "queued_delivery": true
+      }
+    },
+    {
+      "name": "duplex_dma",
+      "override": {
+        "duplex_dma": true
+      }
+    },
+    {
+      "name": "transpose_decode",
+      "override": {
+        "transpose_decode": true
+      }
+    },
+    {
+      "name": "overlap_drain",
+      "override": {
+        "overlap_drain": false
+      }
+    },
+    {
+      "name": "double_buffer",
+      "override": {
+        "double_buffer": false
+      }
+    },
+    {
+      "name": "wavefront_fill",
+      "override": {
+        "wavefront_fill": true
+      }
+    },
+    {
+      "name": "query_tile",
+      "override": {
+        "query_tile": 16
+      }
+    },
+    {
+      "name": "key_tile",
+      "override": {
+        "key_tile": 64
+      }
+    },
+    {
+      "name": "double_output_port",
+      "override": {
+        "array_output_bytes_per_cycle": 16
+      }
+    },
+    {
+      "name": "double_both_dma_links",
+      "override": {
+        "dma_bytes_per_cycle": 128,
+        "sram_dma_rate": 128
+      }
+    },
+    {
+      "name": "sweep_dma_bytes_per_cycle",
+      "override": {
+        "dma_bytes_per_cycle": 70,
+        "sram_dma_rate": 64
+      },
+      "parameter_ratio": 1.09375
+    },
+    {
+      "name": "sweep_sram_dma_rate",
+      "override": {
+        "sram_dma_rate": 70
+      },
+      "parameter_ratio": 1.09375
+    },
+    {
+      "name": "sweep_array16_input_bytes_per_cycle",
+      "override": {
+        "array16_input_bytes_per_cycle": 70
+      },
+      "parameter_ratio": 1.09375
+    },
+    {
+      "name": "sweep_array32_input_bytes_per_cycle",
+      "override": {
+        "array32_input_bytes_per_cycle": 106
+      },
+      "parameter_ratio": 1.1041666666666667
+    },
+    {
+      "name": "sweep_array_output_bytes_per_cycle",
+      "override": {
+        "array_output_bytes_per_cycle": 9
+      },
+      "parameter_ratio": 1.125
+    },
+    {
+      "name": "sweep_vector_bytes_per_cycle",
+      "override": {
+        "vector_bytes_per_cycle": 141
+      },
+      "parameter_ratio": 1.1015625
+    },
+    {
+      "name": "sweep_dma_setup",
+      "override": {
+        "dma_setup": 180
+      },
+      "parameter_ratio": 0.9
+    },
+    {
+      "name": "sweep_dram_read_start",
+      "override": {
+        "dram_read_start": 180
+      },
+      "parameter_ratio": 0.9
+    },
+    {
+      "name": "sweep_dram_write_start",
+      "override": {
+        "dram_write_start": 135
+      },
+      "parameter_ratio": 0.9
+    },
+    {
+      "name": "sweep_array_launch",
+      "override": {
+        "array_launch": 90
+      },
+      "parameter_ratio": 0.9
+    },
+    {
+      "name": "sweep_vector_launch",
+      "override": {
+        "vector_launch": 270
+      },
+      "parameter_ratio": 0.9
+    },
+    {
+      "name": "sweep_scratchpad_bytes",
+      "override": {
+        "scratchpad_bytes": 1153434
+      },
+      "parameter_ratio": 1.1000003814697266
+    },
+    {
+      "name": "rowblocked",
+      "attention": "rowblocked"
+    },
+    {
+      "name": "independent_heads",
+      "override": {
+        "share_kv": false
+      }
+    },
+    {
+      "name": "sweep_mac_rate",
+      "override": {
+        "mac_percent": 110
+      },
+      "parameter_ratio": 1.1
+    },
+    {
+      "name": "a16exact",
+      "override": {
+        "precision_policy": "a16exact"
+      }
+    },
+    {
+      "name": "fixedshift",
+      "override": {
+        "precision_policy": "fixedshift"
+      }
+    }
+  ],
+  "placements": [
+    [
+      4,
+      1,
+      1
+    ],
+    [
+      1,
+      4,
+      1
+    ],
+    [
+      1,
+      1,
+      4
+    ],
+    [
+      2,
+      2,
+      1
+    ],
+    [
+      2,
+      1,
+      2
+    ],
+    [
+      1,
+      2,
+      2
+    ]
+  ],
+  "host_models": {
+    "serial": {
+      "duplex": false,
+      "overlap": false,
+      "startup_ns": 0,
+      "GB_s": 16
+    },
+    "chunked": {
+      "duplex": true,
+      "overlap": false,
+      "startup_ns": 0,
+      "GB_s": 16
+    },
+    "overlap_bound": {
+      "duplex": true,
+      "overlap": true,
+      "startup_ns": 0,
+      "GB_s": 16
+    },
+    "serial_1us": {
+      "duplex": false,
+      "overlap": false,
+      "startup_ns": 1000,
+      "GB_s": 16
+    },
+    "finite_host": {
+      "duplex": false,
+      "overlap": false,
+      "startup_ns": 1000,
+      "GB_s": 16,
+      "reduce_GB_s": 50,
+      "host_dispatch_ns": 10000
+    }
+  },
+  "pipeline_microbatches": [
+    1,
+    2,
+    4
+  ],
+  "schedules": [
+    "naive",
+    "rowblocked",
+    "flashattention"
+  ],
+  "precision_policies": [
+    "scaled",
+    "saturate",
+    "bounded",
+    "exact4",
+    "a16exact",
+    "fixedshift"
+  ]
+}
